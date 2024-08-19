@@ -1,5 +1,7 @@
 # HideAndSeek
 
+![icon](https://github.com/gogozooom/Hide-and-Seek-LC-/blob/master/icon.png?raw=true)
+
 ## Description
 - v60! *New Abilities* adding spice to the classic hide and seek game!
 - A Hide And Seek mod dedicated to making your life easier when it comes to rules and finding the right mods.
