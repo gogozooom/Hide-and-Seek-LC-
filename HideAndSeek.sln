@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HideAndSeek", "HideAndSeek.csproj", "{BEB50C67-B4B9-4A13-9BDF-CC356C1FB7BD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FD5DEB44-80A7-4C40-9805-9238E98ED21C}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BEB50C67-B4B9-4A13-9BDF-CC356C1FB7BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEB50C67-B4B9-4A13-9BDF-CC356C1FB7BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEB50C67-B4B9-4A13-9BDF-CC356C1FB7BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEB50C67-B4B9-4A13-9BDF-CC356C1FB7BD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8CDF4389-75C0-42FC-B51F-0E786D88D806}
+	EndGlobalSection
+EndGlobal
