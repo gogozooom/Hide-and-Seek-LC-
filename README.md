@@ -6,32 +6,30 @@
 - A config allowing a wide range of behaviors allowing the seeker or the hiders to have a slightly better advantage
 - Infinite money so you don't have to get a few things back just to go to Titan for a few rounds
 
-## v1.3.0 Ability Update
-- Added config option to make ship leave earlier (true and 10:00PM by default)
-- Added config option to enable infinite flashlight battery (true by default)
-- Added a few more taunt sound effects
-- Added 'Stealth' and 'Invisibility' as new abilities
-- Added categories to keep all the abilities sorted (plus a favorites tab)
-
-- Turrets and Landmines now no longer activate to their creator
-- Hoarding Bugs will now give items to their creator and fend of anyone else trying to hinder this process
-- Brackens will now ignore their creator
-- The Masked will now ignore their creator
-- Thumpers will now ignore their creator
-- Spellchecked the Changelog and Readme
-- Items spawned now enter inventory automatically
-- Changed a few ability prices to make more balanced
-- Winners now get a good wad of cash after each round
-- Dead bodies now have more scrap value (100 by default in config)
-
-- Fixed a few errors when using abilities with certain clients
-- Fixed more issues related to the host leaving and creating a new lobby
-- Fixed the swap ability breaking when there is only one hider left
-- Fixed spawning Turrets/Landmines sometimes having an error
-- Fixed tip being able to exclaim "'1' hiders remain"; changed to "'1' hider remains"
-- Fixed the first and last taunt sound being less probable to play
-- Fixed being able to open the ability menu when you're not supposed to (Using the terminal, Quick menu open)
-- Temporarily removed 'Spawn Remote' ability
+## v1.3.1 Latest Update Changes
+- Added:
+    - 'Maneater Enabled' as a config option
+- Changed:
+    - 'Teleport seeker to entrance', and 'teleport seeker inside' are now true by default (Changed in config)
+    - 'last hider time' changed to 9:00 PM(Changed in config)
+    - Descriptions of a few abilities
+    - Ability UI is now overall easier to read
+- Fixed:
+    - Warning the client at 10 seconds rather than 5 (Invisibility + Stealth)
+    - "Collision Cube" appearing on client invisibility expires
+    - Flashlight and Walkie sometimes being visible while invisible ability is active (Due to reserved slot mod)
+    - Spawning a turret or landmine when the prefab wasn't loaded will now refund your credits
+    - spawned turrets or landmines being persistent to the next round
+    - Being able to get ejected sometimes
+- Balanced The Abilities:
+    - 'Stealth' Ability Cost: $100 -> $30
+    - 'Long Stealth' Ability Cost: $500 -> $259
+    - 'Spawn Mimic' Ability Cost: $250 -> $200
+    - 'Spawn Loot Bug' Ability Cost: $300 -> $99; Ability Delay: 60s -> 80s
+    - 'Spawn Thumper' Ability Cost: $750 -> $500
+    - 'Spawn Bracken' Ability Cost: $500 -> $750
+    - 'Spawn Turret' Ability Cost: $599 -> $299; Ability Delay: 10s -> 30s
+    - 'Spawn LandMine' Ability Cost: $199 -> $109; Ability Delay: 10s -> 5s
 
 ## Known Mod Conflict Issues
 - Currently, using having the 'ModelReplacementApi' mod will break the Invisibility ability, as the models are handled differently. This makes it hard to disable the custom models without a hard and unnecessary dependency on the mod
