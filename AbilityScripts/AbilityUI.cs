@@ -22,6 +22,7 @@ namespace HideAndSeek.AbilityScripts
         TextMeshProUGUI titleDescriptionUI;
         TextMeshProUGUI titleUI;
         TextMeshProUGUI descriptionUI;
+        TextMeshProUGUI versionUI;
         TextMeshProUGUI pageUI;
         TextMeshProUGUI costUI;
         TextMeshProUGUI menuControlTip;
@@ -101,6 +102,13 @@ namespace HideAndSeek.AbilityScripts
             if (descriptionUI == null)
             {
                 Debug.LogError("Could not find descriptionUI!");
+                error = true;
+            }
+
+            versionUI = GameObject.Find("Info/Version")?.GetComponent<TextMeshProUGUI>();
+            if (versionUI == null)
+            {
+                Debug.LogError("Could not find versionUI!");
                 error = true;
             }
 
@@ -283,7 +291,10 @@ namespace HideAndSeek.AbilityScripts
         void OnEnable()
         {
             if (initalized)
+            {
                 DisplayAbility(selectedAbility);
+                versionUI.text = Plugin.PLUGIN_GUID + " V" + Plugin.PLUGIN_VERSION;
+            }
         }
 
         void OnDestroy()

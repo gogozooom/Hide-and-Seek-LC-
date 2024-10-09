@@ -71,17 +71,6 @@ namespace HideAndSeek
             base.OnDestroy();
         }
 
-        /*[ServerRpc(RequireOwnership = false)]
-        public void EventTriggerServerRpc(string eventName, MessageProperties message = null)
-        {
-            if (message != null)
-                LevelEvent?.Invoke(eventName, message); // If the event has subscribers (does not equal null), invoke the event
-            else
-                LevelEvent?.Invoke(eventName, new MessageProperties());
-            Debugger.LogMessage("[Server] Event! + " + eventName + " Info: " + message);
-        } */
-
-        //[ClientRpc]
         public void EventSendRpc(string eventName, MessageProperties message = null)
         {
             if (message != null)

@@ -167,7 +167,7 @@ namespace HideAndSeek.Patches
                     playerAbilities = selectedPlayer.gameObject.AddComponent<AbilityInstance>();
                 }
 
-                playerAbilities.ServerMoneyUpdated(mProps._int, mProps._bool, mProps._null);
+                playerAbilities.ServerMoneyUpdated(mProps._int, mProps._bool, mProps._string == "silent");
             }
         }
         public static void DestroyItem(string eventName, MessageProperties mProps)

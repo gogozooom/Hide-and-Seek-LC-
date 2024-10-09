@@ -330,7 +330,7 @@ namespace HideAndSeek
                 "2:Players.Seeker",
                 "Is Seeker Immune",
                 false,
-                "Determines if the seeker could be harmed or not (god mode basically)"
+                "Determines if the seeker could be harmed or not (not recommended while abilites are enabled)"
             );
             hostilesIgnoreSeeker = cfg.Bind(
                 "2:Players.Seeker",
@@ -354,7 +354,7 @@ namespace HideAndSeek
                 "2:Players.Seeker",
                 "Make Ship Leave Early",
                 true,
-                "(Only works if 'shotgunInfiniteAmmo' is enabled) Disables the need to reload a new shell, and lets you shoot like normal again."
+                "Skips the time when there is one hider left (Time defined by 'timeWhenLastHider')"
             );
             timeWhenLastHider = cfg.Bind(
                 "2:Players.Seeker",
@@ -389,7 +389,7 @@ namespace HideAndSeek
             seekerItemSlot2 = cfg.Bind(
                 "2:Players.Seeker",
                 "Seeker Item Slot 2",
-                "",
+                "Pro-flashlight",
                 "The id of the item that will spawn in the second slot of the seeker. (See README.md for list of Item IDs)"
             );
             seekerItemSlot3 = cfg.Bind(
@@ -434,7 +434,7 @@ namespace HideAndSeek
             hiderItemSlot1 = cfg.Bind(
                 "2:Players.Hider",
                 "Hider Item Slot 1",
-                "Pro-flashlight",
+                "flashlight",
                 "The id of the item that will spawn in the first slot of the hider. (See README.md for list of Item IDs)"
             );
             hiderItemSlot2 = cfg.Bind(

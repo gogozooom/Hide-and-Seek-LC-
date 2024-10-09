@@ -6,6 +6,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Subsystems;
+using UnityEngine.UIElements.UIR;
 using Debug = Debugger.Debug;
 
 namespace HideAndSeek.AbilityScripts
@@ -18,21 +20,48 @@ namespace HideAndSeek.AbilityScripts
                 _abilityCost:0, _abilityDelay:0f, _requriesRoundActive: false, _requiresSeekerActive: false,
                 _serverEvent: GiveMoneyServerEvent),
 
-            new AbilityBase(_abilityName:"Spawn Remote", _abilityDescription:"Gives you a remote! Not usefull unless you have you have a mod for it. (External Mod Recommended)", _abilityCategory:"HIDDEN",
+            new AbilityBase(_abilityName:"Remote", _abilityDescription:"Gives you a remote! Not usefull unless you have you have a mod for it. (External Mod Recommended)", _abilityCategory:"HIDDEN",
                 _abilityCost:200, _oneTimeUse:true,
                 _requiresSeekerActive:false,
                 _serverEvent:SpawnRemoteServerEvent),
 
             new AbilityBase(_abilityName:"Taunt", _abilityDescription:"Let out a little somthin!... You might even get a reward!",
-                _abilityDelay:25f,
-                _abilityCost:0, 
+                _abilityDelay:25f, _abilityCost:0, 
                 _seekerAbility:false,
                 _serverEvent:TauntServerEvent, _clientEvent:TauntClientEvent),
 
-            new AbilityBase(_abilityName:"Spawn Key", _abilityDescription:"Gives you a key! Usefull for opening doors, or even, locking them... (External Mod Recommended)", _abilityCategory:"Spawn",
+            new AbilityBase(_abilityName:"Key", _abilityDescription:"Gives you a key! Usefull for opening doors, or even, locking them... (External Mod Recommended)", _abilityCategory:"Item",
                 _abilityCost:245, _abilityDelay:60f,
                 _requiresSeekerActive:false,
                 _serverEvent:SpawnKeyServerEvent),
+
+            new AbilityBase(_abilityName:"TZP-Inhalant", _abilityDescription:"Gives you TZP Inhalant! Usefull for gaining some speed and sounding funny.", _abilityCategory:"Item",
+                _abilityDelay:60f, _abilityCost:205,
+                _requiresSeekerActive:false,
+                _serverEvent:SpawnTZPServerEvent),
+
+            new AbilityBase(_abilityName:"Shovel", _abilityDescription:"Gives you a Shovel! Usefull for possibly killing the seeker! Or just trolling your team mates...", _abilityCategory:"Item",
+                _oneTimeUse:true, _abilityCost:495,
+                _requiresSeekerActive:false,
+                _seekerAbility: false,
+                _serverEvent:SpawnShovelServerEvent),
+
+            new AbilityBase(_abilityName:"Stun Grenade", _abilityDescription:"Gives you a Stun Grenade! Usefull for blinding the seeker for an escape!", _abilityCategory:"Item",
+                _abilityDelay:120f, _abilityCost:205,
+                _requiresSeekerActive:false,
+                _seekerAbility: false,
+                _serverEvent:SpawnStunGServerEvent),
+
+            new AbilityBase(_abilityName:"Flashlight", _abilityDescription:"Lost your flashlight? No worries, have a free flashlight once per round!", _abilityCategory:"Item",
+                _oneTimeUse: true, _abilityCost:0,
+                _requiresSeekerActive:false,
+                _serverEvent:SpawnFlashlightServerEvent),
+
+            new AbilityBase(_abilityName:"Walkie-talkie", _abilityDescription:"Wanna talk to your teammates? Have a free walkie-talkie once per round!", _abilityCategory:"Item",
+                _oneTimeUse: true, _abilityCost:0,
+                _requiresSeekerActive:false,
+                _seekerAbility: false,
+                _serverEvent:SpawnWalkieServerEvent),
 
             new AbilityBase(_abilityName:"Critical Injury", _abilityDescription:"Makes your nearest enemy slow down to a crawl at 10 hp! Usefull for chasing hiders, or running from the seeker!", _abilityCategory:"Offensive",
                 _abilityCost:200, _abilityDelay:60f,
@@ -81,7 +110,6 @@ namespace HideAndSeek.AbilityScripts
                 _abilityCost:750, _abilityDelay:120, _hiderAbility:false),
 
 
-
             new AbilityBase(_abilityName:"Spawn Turret", _abilityDescription:"Catch the hiders off guard with perfect turret placement! for only for two-ninety-nine! Don't worry, it wont shoot you!", _abilityCategory:"Spawn",
                 _serverEvent:SpawnTurretServerEvent, _clientEvent:SpawnClientEvent,
                 _abilityCost:299, _abilityDelay: 30f, _hiderAbility:false),
@@ -90,10 +118,10 @@ namespace HideAndSeek.AbilityScripts
                 _serverEvent:SpawnLandmineServerEvent, _clientEvent:SpawnClientEvent,
                 _abilityCost:109, _abilityDelay: 5f, _hiderAbility:false),
 
-            new AbilityBase(_abilityName:"Heat Seeking", _abilityDescription:"The ultimate hider seeking device! For only nine-ninety-nine you can pinpoint the location of all your enemies, and get revenge for something they never did!", _abilityCategory:"Offensive",
+            new AbilityBase(_abilityName:"Heat Seeking", _abilityDescription:"The ultimate hider seeking device! For only nine-ninety-nine you can pinpoint the location of a random enemy, and get revenge for something they never did! NOTE: Your location will also be revealed to the target!", _abilityCategory:"Offensive",
                 _serverEvent:HeatSeekingServerEvent, _clientEvent:HeatSeekingClientEvent,
                 _abilityCost:999,
-                _requiresSeekerActive:false, _oneTimeUse: true, _hiderAbility:false),
+                _oneTimeUse: true, _hiderAbility:false),
         }; 
 
         // -- Ability Methods --
@@ -268,6 +296,26 @@ namespace HideAndSeek.AbilityScripts
         static void SpawnKeyServerEvent(AbilityBase ability, ulong activatorId)
         {
             RoundManagerPatch.SpawnNewItem("Key", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
+        }
+        static void SpawnTZPServerEvent(AbilityBase ability, ulong activatorId)
+        {
+            RoundManagerPatch.SpawnNewItem("TZP-Inhalant", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
+        }
+        static void SpawnFlashlightServerEvent(AbilityBase ability, ulong activatorId)
+        {
+            RoundManagerPatch.SpawnNewItem("Flashlight", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
+        }
+        static void SpawnWalkieServerEvent(AbilityBase ability, ulong activatorId)
+        {
+            RoundManagerPatch.SpawnNewItem("Walkie-talkie", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
+        }
+        static void SpawnShovelServerEvent(AbilityBase ability, ulong activatorId)
+        {
+            RoundManagerPatch.SpawnNewItem("Shovel", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
+        }
+        static void SpawnStunGServerEvent(AbilityBase ability, ulong activatorId)
+        {
+            RoundManagerPatch.SpawnNewItem("Stun grenade", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
         }
         static void SpawnRemoteServerEvent(AbilityBase ability, ulong activatorId)
         {
@@ -527,7 +575,7 @@ namespace HideAndSeek.AbilityScripts
                 selectedPlayerId = activatorId;
 
                 if(ability.abilityCost != 0)
-                    NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__null:true, __int:ability.abilityCost, __ulong:activatorId)); // Refund!
+                    NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__string:"silent", __int:ability.abilityCost, __ulong:activatorId)); // Refund!
             }
 
             ability.ActivateClient(activatorId, 
@@ -582,12 +630,46 @@ namespace HideAndSeek.AbilityScripts
         }
         static IEnumerator HeatSeekingServerEventCoroutine(AbilityBase ability, ulong activatorId)
         {
-            while (!StartOfRound.Instance.inShipPhase)
+            List<PlayerControllerB> hiders = new List<PlayerControllerB>();
+            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
             {
-                ability.ActivateClient(activatorId);
-                yield return new WaitForSecondsRealtime(10f);
+                if (player.isPlayerControlled && !player.isPlayerDead && player.actualClientId != activatorId)
+                {
+                    Debug.LogWarning("Adding player: " + player + " To targets!");
+                    hiders.Add(player);
+                }
             }
-            ability.ActivateClient(activatorId, "CLEAN");
+
+            int r = Random.Range(0, hiders.Count);
+
+            if (hiders.Count > 0)
+            {
+                Debug.LogWarning("Player id chosen: " + hiders[r]);
+                while (StartOfRound.Instance.shipHasLanded)
+                {
+                    ability.ActivateClient(activatorId, "TG:"+hiders[r].actualClientId.ToString());
+                    foreach (var item in dots.ToArray())
+                    {
+                        if(item.targetedPlayer.isPlayerDead == true)
+                        {
+                            dots.Remove(item);
+                            GameObject.Destroy(item.gameObject);
+                        }
+                    }
+                    if (dots.Count <= 0)
+                    {
+                        break;
+                    }
+                    yield return new WaitForSecondsRealtime(12f); // Update Time
+                }
+                ability.ActivateClient(activatorId, "CLEAN");
+            }
+            else
+            {
+                Debug.LogWarning("None To Target!");
+                NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__string:"silent", __int: ability.abilityCost, __ulong: activatorId)); // Refund!
+            }
+            ability.usedThisRound = false;
         }
 
         static List<SeekerDotVisuals> dots = new();
@@ -603,43 +685,51 @@ namespace HideAndSeek.AbilityScripts
                     GameObject.Destroy(dot.gameObject);
                 }
                 dots.Clear();
+                if (localPlayer.actualClientId == activatorId)
+                {
+                    localAbilityInstance.DisplayTip("Target(s) eliminated! Disengaging...", true);
+                }
                 return;
             }
 
-            if (dots.Count == 0)
+            if (dots.Count == 0 && extraMessage.Split(":")[0] == "TG")
             {
+                ulong targetId = ulong.Parse(extraMessage.Split(":")[1]);
                 if (localPlayer.actualClientId == activatorId)
                 {
                     // User
+                    var newDot = new GameObject().AddComponent<SeekerDotVisuals>();
+
                     foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
                     {
-                        if (player.isPlayerControlled && !player.isPlayerDead && player.actualClientId != activatorId)
+                        if (player.actualClientId == targetId)
                         {
-                            dots.Add(new GameObject().AddComponent<SeekerDotVisuals>());
-
-                            dots[dots.Count - 1].gameObject.name = player.playerUsername;
-                            dots[dots.Count - 1].targetedPlayer = player;
+                            newDot.gameObject.name = player.playerUsername;
+                            newDot.targetedPlayer = player;
                         }
                     }
+
+                    dots.Add(newDot);
                 }
-                else
+                else if(localPlayer.actualClientId == targetId)
                 {
                     // Target
                     dots.Add(new GameObject().AddComponent<SeekerDotVisuals>());
 
-                    dots[0].gameObject.name = localPlayer.playerUsername;
-                    dots[0].targetedPlayer = localPlayer;
+                    dots[0].gameObject.name = Plugin.seekerPlayer.playerUsername;
+                    dots[0].targetedPlayer = Plugin.seekerPlayer;
 
                     localAbilityInstance.DisplayTip($"You're getting tracked by '{Plugin.seekerPlayer.playerUsername}'", true);
                 }
             }
 
             // Update Dot Position
-            foreach (var dot in dots)
+            foreach (var dot in dots.ToArray())
             {
                 if (dot.targetedPlayer.isPlayerDead)
                 {
-                    dot.gameObject.SetActive(false);
+                    dots.Remove(dot);
+                    GameObject.Destroy(dot.gameObject);
                 }
                 else
                 {
