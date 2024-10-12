@@ -106,15 +106,18 @@ namespace HideAndSeek.AudioScripts
             return null;
         }
 
-        public static void PlaySound(string name, float volume = 1f, float pitch = 1f, Vector3 position = new(), float spatialBend = 0, float minDistance = 1, float maxDistance = 500, float random = -1f)
+        public static void PlaySound(string name, float volume = 1f, float pitch = 1f, Vector3 position = new(), float spatialBend = 0, float minDistance = 1, float maxDistance = 500, float random = -1f, Transform parent = null)
         {
             AudioClip clip = GetSound(name, random:random);
 
-            PlaySound(clip, volume, pitch, position, spatialBend, minDistance, maxDistance);
+            PlaySound(clip, volume, pitch, position, spatialBend, minDistance, maxDistance, parent);
         }
-        public static void PlaySound(AudioClip clip, float volume = 1f, float pitch = 1f, Vector3 position = new(), float spatialBend = 0, float minDistance = 1, float maxDistance = 500)
+        public static void PlaySound(AudioClip clip, float volume = 1f, float pitch = 1f, Vector3 position = new(), float spatialBend = 0, float minDistance = 1, float maxDistance = 500, Transform parent = null)
         {
             GameObject oneTimeUse = new($"Playing({clip.name}) ONCE");
+            if (parent != null)
+                oneTimeUse.transform.parent = parent;
+
             oneTimeUse.AddComponent<OneTimeAudio>().PlayAudioClip(clip, volume, pitch, position, spatialBend, minDistance, maxDistance);
         }
     }

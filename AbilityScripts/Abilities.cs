@@ -67,13 +67,13 @@ namespace HideAndSeek.AbilityScripts
                 _abilityCost:200, _abilityDelay:60f,
                 _serverEvent:CriticalInjuryServerEvent, _clientEvent:CriticalInjuryClientEvent),
 
-            new AbilityBase(_abilityName:"Teleport", _abilityDescription:"Teleport yourself to a random location! Good for getting out of sticky situations!", _abilityCategory:"Defensive",
+            new AbilityBase(_abilityName:"Teleport", _abilityDescription:"Teleport yourself to a random location! Good for getting out of sticky situations! WARNING: This ability has a 3 second startup! This means it will take 3 seconds after using the ability for you to get teleported!", _abilityCategory:"Defensive",
                 _abilityCost:400, _abilityDelay:60f,
                 _serverEvent:TeleportServerEvent, _clientEvent:TeleportClientEvent,
                 _requiresSeekerActive:false,
                 _seekerAbility:false),
 
-            new AbilityBase(_abilityName:"Swap", _abilityDescription:"Swap locations with a random hider friend! Good for getting a free hiding spot! I think...", _abilityCategory:"Defensive",
+            new AbilityBase(_abilityName:"Swap", _abilityDescription:"Swap locations with a random hider friend! Good for getting a free hiding spot! I think... WARNING: This ability has a 3 second startup! This means it will take 3 seconds after using the ability for you to get teleported!", _abilityCategory:"Defensive",
                 _serverEvent:SwapServerEvent, _clientEvent:SwapClientEvent,
                 _abilityCost:450, _abilityDelay:60f,
                 _seekerAbility:false),
@@ -528,17 +528,34 @@ namespace HideAndSeek.AbilityScripts
 
         static void TeleportClientEvent(AbilityBase ability, ulong activatorId, string extraMessage = null)
         {
+            GameNetworkManager.Instance.StartCoroutine(TeleportClientEventC(ability, activatorId, extraMessage));
+        }
+        static IEnumerator TeleportClientEventC(AbilityBase ability, ulong activatorId, string extraMessage = null)
+        {
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
+            PlayerControllerB activatorPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
 
             Vector3 beforePosition = JsonUtility.FromJson<Vector3>(extraMessage.Split("W")[0]);
             Vector3 randomPosition = JsonUtility.FromJson<Vector3>(extraMessage.Split("W")[1]);
+
+            activatorPlayer.beamUpParticle.Play();
+
+            AudioManager.PlaySound("BeamCharging", position: beforePosition, maxDistance: 50, spatialBend: 1, parent: activatorPlayer.transform);
+            AudioManager.PlaySound("Spark", position: beforePosition, maxDistance: 50, spatialBend: 1, parent: activatorPlayer.transform);
+
+            yield return new WaitForSeconds(3);
+
+            if (activatorPlayer.isPlayerDead)
+            {
+                yield break;
+            }
 
             if (activatorId == localPlayer.actualClientId)
             {
                 localPlayer.TeleportPlayer(randomPosition);
             }
 
-            AudioManager.PlaySound("Teleporting", position: beforePosition, maxDistance: 50, spatialBend: 1);
+            AudioManager.PlaySound("Teleporting", position: activatorPlayer.transform.position, maxDistance: 50, spatialBend: 1);
             AudioManager.PlaySound("Teleported", position: randomPosition, maxDistance: 50, spatialBend: 1);
         }
         #endregion
@@ -578,35 +595,71 @@ namespace HideAndSeek.AbilityScripts
                     NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__string:"silent", __int:ability.abilityCost, __ulong:activatorId)); // Refund!
             }
 
-            ability.ActivateClient(activatorId, 
-                $"{selectedPlayerId.ToString()}" +
-                $"W{JsonUtility.ToJson(RoundManagerPatch.GetPlayerWithClientId(activatorId).transform.position)}" +
-                $"W{JsonUtility.ToJson(RoundManagerPatch.GetPlayerWithClientId(selectedPlayerId).transform.position)}");
+            ability.ActivateClient(activatorId, selectedPlayerId.ToString());
         }
-
         static void SwapClientEvent(AbilityBase ability, ulong activatorId, string extraMessage = null)
+        {
+            GameNetworkManager.Instance.StartCoroutine(SwapClientEventC(ability, activatorId, extraMessage));
+        }
+        static IEnumerator SwapClientEventC(AbilityBase ability, ulong activatorId, string extraMessage = null)
         {
             Debug.Log($"[Client] --- Ability Fired by id '{activatorId}' with '{extraMessage}'! ---");
 
+            ulong targetPlayerId = ulong.Parse(extraMessage);
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
-            ulong targetPlayerId = ulong.Parse(extraMessage.Split("W")[0]);
-            Vector3 userPosition = JsonUtility.FromJson<Vector3>(extraMessage.Split("W")[1]);
-            Vector3 targetPosition = JsonUtility.FromJson<Vector3>(extraMessage.Split("W")[2]);
+            PlayerControllerB activatorPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
+            PlayerControllerB targetPlayer = RoundManagerPatch.GetPlayerWithClientId(targetPlayerId);
+
+            targetPlayer.beamOutBuildupParticle.Play();
+            activatorPlayer.beamOutBuildupParticle.Play();
+
+            AudioManager.PlaySound("BeamCharging", position: activatorPlayer.transform.position, maxDistance: 50, spatialBend: 1, parent: activatorPlayer.transform);
+            AudioManager.PlaySound("Spark", position: activatorPlayer.transform.position, maxDistance: 50, spatialBend: 1, parent: activatorPlayer.transform);
+
+            AudioManager.PlaySound("BeamCharging", position: targetPlayer.transform.position, maxDistance: 50, spatialBend: 1, parent: targetPlayer.transform);
+            AudioManager.PlaySound("Spark", position: targetPlayer.transform.position, maxDistance: 50, spatialBend: 1, parent: targetPlayer.transform);
+
+            if (targetPlayerId != activatorId) 
+            {
+                if (localPlayer.actualClientId == activatorId)
+                {
+                    // User
+                    localPlayer.GetComponent<AbilityInstance>().DisplayTip($"Switching places with '{targetPlayer.playerUsername}'", false);
+                }
+                else if (localPlayer.actualClientId == targetPlayerId)
+                {
+                    // Target
+                    localPlayer.GetComponent<AbilityInstance>().DisplayTip($"'{activatorPlayer.playerUsername}' is switching places with you!", true);
+                }
+            }
+
+            yield return new WaitForSeconds(3);
+
+            if (activatorPlayer.isPlayerDead || targetPlayer.isPlayerDead)
+            {
+                if (localPlayer.actualClientId == activatorId)
+                {
+                    // User
+                    localPlayer.GetComponent<AbilityInstance>().DisplayTip($"Failed to switch places with '{RoundManagerPatch.GetPlayerWithClientId(targetPlayerId).playerUsername}'", false);
+                }
+                yield break;
+            }
 
             if (localPlayer.actualClientId == activatorId)
             {
                 // User
-                localPlayer.TeleportPlayer(targetPosition);
-                localPlayer.GetComponent<AbilityInstance>().DisplayTip($"Switching places with '{RoundManagerPatch.GetPlayerWithClientId(targetPlayerId).playerUsername}'", false);
+                localPlayer.TeleportPlayer(targetPlayer.transform.position);
             }
             else if (localPlayer.actualClientId == targetPlayerId)
             {
                 // Target
-                localPlayer.TeleportPlayer(userPosition);
-                localPlayer.GetComponent<AbilityInstance>().DisplayTip($"You got swapped with '{RoundManagerPatch.GetPlayerWithClientId(activatorId).playerUsername}'!", true);
+                localPlayer.TeleportPlayer(activatorPlayer.transform.position);
             }
 
-            if(targetPlayerId == activatorId)
+            activatorPlayer.beamOutParticle.Play();
+            targetPlayer.beamOutParticle.Play();
+
+            if (targetPlayerId == activatorId)
             {
                 if (localPlayer.actualClientId == activatorId)
                 {
@@ -616,8 +669,8 @@ namespace HideAndSeek.AbilityScripts
             }
             else
             {
-                AudioManager.PlaySound("Teleported", position: userPosition, maxDistance: 20, spatialBend: 1);
-                AudioManager.PlaySound("Teleported", position: targetPosition, maxDistance: 20, spatialBend: 1);
+                AudioManager.PlaySound("Teleported", position: activatorPlayer.transform.position, maxDistance: 20, spatialBend: 1);
+                AudioManager.PlaySound("Teleported", position: targetPlayer.transform.position, maxDistance: 20, spatialBend: 1);
             }
         }
         #endregion

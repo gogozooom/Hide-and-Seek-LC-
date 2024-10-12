@@ -528,7 +528,7 @@ namespace HideAndSeek.Patches
         {
             PlayerControllerB playerController = null;
 
-            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
                 Debug.Log($"Looped through {player.name}; Client id {player.actualClientId}; Is controlled; {player.isPlayerControlled}");
                 if (playerId == 0) // Strange First time fix
@@ -548,6 +548,24 @@ namespace HideAndSeek.Patches
 
                         break;
                     }
+                }
+            }
+
+            if (playerController == null)
+            {
+                bool bugFound = false;
+                foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+                {
+                    if (player.OwnerClientId != player.actualClientId)
+                    {
+                        bugFound = true;
+                        player.actualClientId = player.OwnerClientId;
+                        Debug.LogWarning($"'{player.playerUsername}' found with an incorrect actualClientId!");
+                    }
+                }
+                if (bugFound)
+                {
+                    return GetPlayerWithClientId(playerId);
                 }
             }
 

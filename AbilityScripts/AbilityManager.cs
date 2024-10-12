@@ -19,7 +19,7 @@ namespace HideAndSeek.AbilityScripts
                 yield return new WaitForEndOfFrame();
             }
 
-            Debug.Log($"Step One; localPlayer Exits?: {GameNetworkManager.Instance.localPlayerController != null}");
+            Debug.Log($"Step Two; localPlayer Exits?: {GameNetworkManager.Instance.localPlayerController != null}");
 
             while (GameNetworkManager.Instance.localPlayerController == null)
             {
