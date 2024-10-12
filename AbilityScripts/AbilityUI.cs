@@ -308,7 +308,7 @@ namespace HideAndSeek.AbilityScripts
         bool roundStarted = false;
         void Update()
         {
-            if (!roundStarted && StartOfRound.Instance.shipHasLanded && Plugin.seekerPlayer)
+            if (!roundStarted && StartOfRound.Instance.shipHasLanded && Plugin.seekers.Count > 0)
             {
                 Debug.LogError("Round Started!");
 
@@ -339,7 +339,7 @@ namespace HideAndSeek.AbilityScripts
             {
                 List<string> newAbilities = new();
 
-                if (attachedPlayer == Plugin.seekerPlayer)
+                if (Plugin.seekers.Contains(attachedPlayer))
                 {
                     foreach (var aName in abilities)
                     {
@@ -639,7 +639,7 @@ namespace HideAndSeek.AbilityScripts
                 return;
             }
 
-            bool isSeeker = attachedPlayer == Plugin.seekerPlayer;
+            bool isSeeker = Plugin.seekers.Contains(attachedPlayer);
             if (!(selectedAbility.seekerAbility && isSeeker || selectedAbility.hiderAbility && !isSeeker) || // Not your ability type
                 (selectedAbility.oneTimeUse && selectedAbility.usedThisRound) || // Already Used This Round
                 (Time.time - selectedAbility.lastUsed <= selectedAbility.abilityDelay) || // On Cooldown

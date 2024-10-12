@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using Debugger;
+using UnityEngine;
 
 namespace HideAndSeek
 {
@@ -54,7 +55,10 @@ namespace HideAndSeek
         public static ConfigEntry<bool> maneaterEnabled;
 
         // Players.Seeker
+        public static ConfigEntry<Color> seekerNameColor;
         public static ConfigEntry<string> seekerChooseBehavior;
+        public static ConfigEntry<string> numberOfSeekers;
+        public static ConfigEntry<string> extraSeekerChooseBehavior;
         public static ConfigEntry<bool> isSeekerImmune;
         public static ConfigEntry<bool> hostilesIgnoreSeeker;
         public static ConfigEntry<bool> shotgunInfiniteAmmo;
@@ -70,6 +74,7 @@ namespace HideAndSeek
         public static ConfigEntry<string> seekerItemSlot4;
 
         // Players.Hider
+        public static ConfigEntry<Color> hiderNameColor;
         public static ConfigEntry<bool> teleportHidersToEntrance;
         public static ConfigEntry<bool> forceHidersInside;
         public static ConfigEntry<bool> lockHidersInside;
@@ -78,7 +83,19 @@ namespace HideAndSeek
         public static ConfigEntry<string> hiderItemSlot2;
         public static ConfigEntry<string> hiderItemSlot3;
         public static ConfigEntry<string> hiderItemSlot4;
-                
+
+        // Players.Zombies
+        public static ConfigEntry<Color> zombieNameColor;
+        public static ConfigEntry<bool> deadHidersRespawn;
+        public static ConfigEntry<bool> deadZombiesRespawn;
+        public static ConfigEntry<bool> zombiesCanUseAbilities;
+        public static ConfigEntry<float> zombieSpawnDelay;
+        public static ConfigEntry<string> zombieSpawnLocation;
+        public static ConfigEntry<string> zombieItemSlot1;
+        public static ConfigEntry<string> zombieItemSlot2;
+        public static ConfigEntry<string> zombieItemSlot3;
+        public static ConfigEntry<string> zombieItemSlot4;
+
         public Config(ConfigFile cfg)
         {
             #region Debug
@@ -320,11 +337,29 @@ namespace HideAndSeek
             #endregion
 
             #region Players.Seeker
+            seekerNameColor = cfg.Bind(
+                "2:Players.Seeker",
+                "Seeker Name Color",
+                new Color(1, 0, 0),
+                "The color the player's name tag will be."
+            );
             seekerChooseBehavior = cfg.Bind(
                 "2:Players.Seeker",
                 "Seeker Choose Behavior",
                 "Turns",
                 "'None' (Just a random range generator), 'No Double' (Next Seeker can't be last seeker), 'Turns' (Will not pick someone that was already seeker, resets when everyone got a chance), 'Lever' (The seeker is the lever puller)"
+            );
+            numberOfSeekers = cfg.Bind(
+                "2:Players.Seeker",
+                "Number of Seekers",
+                "20%",
+                "'1'-[connected players] (Example '3') OR '1%'-'100%' (Example 25%): No matter what this is set to, (Example '0' or '100%') there will ALWAYS be at least 1 hider and 1 seeker (Unless there is only one connected player, then they would just be seeker)"
+            );
+            extraSeekerChooseBehavior = cfg.Bind(
+                "2:Players.Seeker",
+                "Extra Seeker Choose Behavior",
+                "Turns",
+                "'None' (Just a random range generator), 'Turns' (Will not pick someone that was already seeker, resets when everyone got a chance), 'Ship' (!WIP! Players in the ship will be seeker)"
             );
             isSeekerImmune = cfg.Bind(
                 "2:Players.Seeker",
@@ -384,29 +419,35 @@ namespace HideAndSeek
                 "2:Players.Seeker",
                 "Seeker Item Slot 1",
                 "Shotgun",
-                "The id of the item that will spawn in the first slot of the seeker. (See README.md for list of Item IDs)"
+                "The id of the item that will spawn in the first slot of the seeker. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             seekerItemSlot2 = cfg.Bind(
                 "2:Players.Seeker",
                 "Seeker Item Slot 2",
                 "Pro-flashlight",
-                "The id of the item that will spawn in the second slot of the seeker. (See README.md for list of Item IDs)"
+                "The id of the item that will spawn in the second slot of the seeker. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             seekerItemSlot3 = cfg.Bind(
                 "2:Players.Seeker",
                 "Seeker Item Slot 3",
                 "",
-                "The id of the item that will spawn in the third slot of the seeker. (See README.md for list of Item IDs)"
+                "The id of the item that will spawn in the third slot of the seeker. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             seekerItemSlot4 = cfg.Bind(
                 "2:Players.Seeker",
                 "Seeker Item Slot 4",
                 "",
-                "The id of the item that will spawn in the fourth slot of the seeker. (See README.md for list of Item IDs)"
+                "The id of the item that will spawn in the fourth slot of the seeker. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             #endregion
 
             #region Players.Hider
+            hiderNameColor = cfg.Bind(
+                "2:Players.Hider",
+                "Hider Name Color",
+                new Color(1, 1, 1),
+                "The color the player's name tag will be."
+            );
             teleportHidersToEntrance = cfg.Bind(
                 "2:Players.Hider",
                 "Teleport Hiders To Entrance",
@@ -435,26 +476,90 @@ namespace HideAndSeek
                 "2:Players.Hider",
                 "Hider Item Slot 1",
                 "flashlight",
-                "The id of the item that will spawn in the first slot of the hider. (See README.md for list of Item IDs)"
+                "The id of the item that will spawn in the first slot of the hider. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             hiderItemSlot2 = cfg.Bind(
                 "2:Players.Hider",
                 "Hider Item Slot 2",
                 "",
-                "The id of the item that will spawn in the second slot of the hider. (See README.md for list of Item IDs)"
+                "The id of the item that will spawn in the second slot of the hider. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             hiderItemSlot3 = cfg.Bind(
                 "2:Players.Hider",
                 "Hider Item Slot 3",
                 "",
-                "The id of the item that will spawn in the third slot of the hider. (See README.md for list of Item IDs)"
+                "The id of the item that will spawn in the third slot of the hider. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             hiderItemSlot4 = cfg.Bind(
                 "2:Players.Hider",
                 "Hider Item Slot 4",
                 "",
-                "The id of the item that will spawn in the fourth slot of the hider. (See README.md for list of Item IDs)"
+                "The id of the item that will spawn in the fourth slot of the hider. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
+            #endregion
+
+            #region Players.Zombies
+            zombieNameColor = cfg.Bind(
+                "2:Players.Zombie",
+                "Zombie Name Color",
+                new Color(0, 1, 0),
+                "The color the player's name tag will be."
+            );
+            deadHidersRespawn = cfg.Bind(
+                "2:Players.Zombie",
+                "Dead Hiders Respawn",
+                true,
+                "(If true) : When a hider is killed, they will turn into a zombie, assisting the seeker."
+            );
+            deadZombiesRespawn = cfg.Bind(
+                "2:Players.Zombie",
+                "Dead Zombies Respawn",
+                false,
+                "(If true) : When a zombie dies, they will respawn again."
+            );
+            zombiesCanUseAbilities = cfg.Bind(
+                "2:Players.Zombie",
+                "Zombies Can Use Abilities",
+                false,
+                "(If true) : The zombies will be able to use seeker abilities."
+            );
+            zombieSpawnDelay = cfg.Bind(
+                "2:Players.Zombie",
+                "Zombie Spawn Delay",
+                5f,
+                "When a player dies, the thread will yield for the spesified amount of seconds before attempting to respawn them as a zombie."
+            );
+            zombieSpawnLocation = cfg.Bind(
+                "2:Players.Zombie",
+                "Lock Hiders Inside",
+                "Seeker",
+                "'Inside' : Teleports Zombies inside when spawning, 'Entrance' : Teleports Zombies to the main entrance when spawning, 'Ship' : Spawns Zombies in the ship, 'Seeker' : Teleports Zombies near the seeker"
+            );
+            zombieItemSlot1 = cfg.Bind(
+                "2:Players.Zombie",
+                "Hider Item Slot 1",
+                "Stop sign, Yield sign, Shovel",
+                "The id of the item that will spawn in the first slot of the zombie. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
+            );
+            zombieItemSlot2 = cfg.Bind(
+                "2:Players.Zombie",
+                "Hider Item Slot 2",
+                "",
+                "The id of the item that will spawn in the second slot of the zombie. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
+            );
+            zombieItemSlot3 = cfg.Bind(
+                "2:Players.Zombie",
+                "Hider Item Slot 3",
+                "",
+                "The id of the item that will spawn in the third slot of the zombie. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
+            );
+            zombieItemSlot4 = cfg.Bind(
+                "2:Players.Zombie",
+                "Hider Item Slot 4",
+                "",
+                "The id of the item that will spawn in the fourth slot of the zombie. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
+            );
+
             #endregion
         }
     }

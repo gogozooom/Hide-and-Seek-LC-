@@ -49,17 +49,25 @@ namespace HideAndSeek.Patches
             {
                 if (player.NetworkObjectId == mProps._ulong)
                 {
-                    Plugin.seekerPlayer = player;
-                    if (GameNetworkManager.Instance.localPlayerController.actualClientId == Plugin.seekerPlayer.actualClientId)
+                    Plugin.seekers.Add(player);
+                    if (GameNetworkManager.Instance.localPlayerController.actualClientId == player.actualClientId)
                     {
                         HUDManager.Instance.DisplayTip("Hide And Seek", $"You are the seeker!", true);
                     }
-                    else
-                    {
-                        HUDManager.Instance.DisplayTip("Hide And Seek", $"Seeker Chosen [{Plugin.seekerPlayer.playerUsername}]");
-                    }
                     break;
                 }
+            }
+        }
+        public static void SeekersChosen(string eventName, MessageProperties mProps)
+        {
+            if (eventName != ".seekersChosen") return;
+
+            Debug.LogError("___________________ Got Seekers Chosen Broadcast!");
+            PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
+
+            if (!Plugin.seekers.Contains(localPlayer))
+            {
+                HUDManager.Instance.DisplayTip("Hide And Seek", $"Seeker(s) chosen this round [{mProps._string}]");
             }
         }
         public static void LockDoor(string eventName, MessageProperties mProps = null)
@@ -342,9 +350,9 @@ namespace HideAndSeek.Patches
                 NetworkHandler.Instance.EventSendRpc(".lockDoor");
             }
 
-            Debug.Log($"TIME TO TELEPORT! Local Player {localPlayer} Seeker {Plugin.seekerPlayer}");
+            Debug.Log($"TIME TO TELEPORT! Local Player '{localPlayer}' Seekers '{Plugin.seekers}'");
 
-            if (localPlayer == Plugin.seekerPlayer)
+            if (Plugin.seekers.Contains(localPlayer))
             {
                 Debug.LogMessage("[SEEKER] Attempted to teleport " + localPlayer.playerUsername + " but they are the seeker!");
 
@@ -395,14 +403,21 @@ namespace HideAndSeek.Patches
 
             while (timeOfDay.currentDayTime < Config.timeSeekerIsReleased.Value)
             {
-                if (Plugin.seekerPlayer.isPlayerDead && !StartOfRound.Instance.shipIsLeaving)
+                int aliveSeekers = 0;
+                foreach (var player in Plugin.seekers)
                 {
-                    if (isHost)
+                    if (!player.isPlayerDead && player.gameObject.activeSelf)
                     {
-                        RoundManagerPatch.PlayerDied("Open Door Wait", checking: true);
+                        aliveSeekers++;
                     }
+                }
+                if (aliveSeekers <= 0)
+                {
+                    GameObject.FindAnyObjectByType<StartMatchLever>().EndGame();
+                    Debug.LogError("All Seekers Died Before The Round Started!");
                     yield break;
                 }
+
                 if (!timeOfDay.timeHasStarted)
                 {
                     yield break;
@@ -416,7 +431,7 @@ namespace HideAndSeek.Patches
                 NetworkHandler.Instance.EventSendRpc(".openDoor");
             }
 
-            if (Plugin.seekerPlayer.actualClientId == GameNetworkManager.Instance.localPlayerController.actualClientId)
+            if (Plugin.seekers.Contains(localPlayer))
             {
                 Debug.LogMessage("Teleporting to entrance...");
                 EntranceTeleport entranceScript = (EntranceTeleport)AccessTools.Method(typeof(RoundManager), "FindMainEntranceScript", null, null).Invoke(null, [Config.forceSeekerInside.Value]);

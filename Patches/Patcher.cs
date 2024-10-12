@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Debug = Debugger.Debug;
 
 namespace HideAndSeek.Patches
@@ -42,10 +43,10 @@ namespace HideAndSeek.Patches
                 leverLastFlippedBy = 999;
                 levelLoading = false;
                 lastSeekerId = 10001;
-                curretPool.Clear();
                 pastSeekers.Clear();
                 itemSpawnPositions.Clear();
-                Plugin.seekerPlayer = null;
+                Plugin.seekers.Clear();
+                Plugin.zombies.Clear();
             }
         }
 
@@ -92,21 +93,23 @@ namespace HideAndSeek.Patches
                 playersAlive = alivePlayerCount;
                 if (TimeOfDay.Instance.currentDayTime != 0)
                 {
-                    PlayerDied("Player Died!", alivePlayerCount);
+                    PlayerDied("Player Died!");
                 }
             }
             if (StartOfRound.Instance.shipIsLeaving && shipLeaving == false)
             {
+                // Round Starting
                 shipLeaving = true;
             }
             else if (StartOfRound.Instance.inShipPhase && shipLeaving == true)
             {
+                // Round Ended
                 shipLeaving = false;
 
-                if (Plugin.seekerPlayer && !seekerWon)
-                    foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+                if (Plugin.seekers.Count > 0 && !seekersWon)
+                    foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                     {
-                        if (player != Plugin.seekerPlayer && player.gameObject.activeSelf)
+                        if (!Plugin.seekers.Contains(player) && player.gameObject.activeSelf)
                         {
                             NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
                             NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
@@ -125,12 +128,14 @@ namespace HideAndSeek.Patches
             if (levelLoading) { Debug.LogError("levelLoading is true! This should be abnormal!"); return false; }
             levelLoading = true;
 
-            instance = GameObject.FindObjectOfType<RoundManager>();
+            instance = GameObject.FindFirstObjectByType<RoundManager>();
+            Plugin.seekers.Clear();
+            Plugin.zombies.Clear();
             playersTeleported = 0;
 
             SyncingPatch.TeleportPlayer();
 
-            seekerWon = false;
+            seekersWon = false;
             currentLevel = newLevel;
             rewardedPlayersD = false;
             bool isHost = GameNetworkManager.Instance.isHostingGame;
@@ -376,7 +381,7 @@ namespace HideAndSeek.Patches
             // Init Players
             List<PlayerControllerB> players = new();
 
-            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
                 if (player.isPlayerControlled)
                 {
@@ -386,13 +391,46 @@ namespace HideAndSeek.Patches
             }
 
             // Pick Seeker
+            int seekersThisRound = 1;
 
-            Plugin.seekerPlayer = PickRandomSeeker();
+            if (Config.numberOfSeekers.Value.Contains("%"))
+            {
+                seekersThisRound = Mathf.RoundToInt(float.Parse(Config.numberOfSeekers.Value.Replace("%", "")) / 100 * players.Count); // [config]% or players.Count
+            }
+            else
+            {
+                seekersThisRound = int.Parse(Config.numberOfSeekers.Value.Split("%")[0]);
+            }
 
-            Debug.LogMessage($"Seeker Chosen: {Plugin.seekerPlayer.playerUsername}");
-            HUDManager.Instance.DisplayTip("Hide And Seek", $"Seeker Chosen [{Plugin.seekerPlayer.playerUsername}]");
+            if (seekersThisRound >= players.Count)
+            {
+                seekersThisRound = players.Count - 1;
+            }
+            if (seekersThisRound <= 0)
+            {
+                seekersThisRound = 1;
+            }
 
-            NetworkHandler.Instance.EventSendRpc(".playerChosen", new MessageProperties() { _ulong = Plugin.seekerPlayer.NetworkObjectId });
+            Debug.LogWarning($"Number of seekers this round! = '{seekersThisRound}'");
+
+            string seekersChosenS = "";
+
+            for (int i = 0; i < seekersThisRound; i++)
+            {
+                PlayerControllerB player = PickRandomSeeker();
+
+                Plugin.seekers.Add(player);
+                if (seekersChosenS != "")
+                {
+                    seekersChosenS += ", ";
+                }
+                seekersChosenS += player.playerUsername;
+
+                NetworkHandler.Instance.EventSendRpc(".playerChosen", new MessageProperties(__ulong: player.NetworkObjectId));
+            }
+
+            NetworkHandler.Instance.EventSendRpc(".seekersChosen", new MessageProperties(__string: seekersChosenS));
+
 
             itemSpawnPositions.Clear();
 
@@ -415,80 +453,81 @@ namespace HideAndSeek.Patches
         }
         public static ulong lastSeekerId = 10001;
         public static List<ulong> pastSeekers = new List<ulong>();
-        public static List<ulong> curretPool = new List<ulong>();
         public static PlayerControllerB PickRandomSeeker()
         {
             string pickType = Config.seekerChooseBehavior.Value.ToLower().Trim().Replace(" ", "");
+            if (Plugin.seekers.Count > 0)
+            {
+                pickType = Config.extraSeekerChooseBehavior.Value.ToLower().Trim().Replace(" ", "");
+            }
             ulong seekerPlayerId = 10001;
 
             Debug.Log($"Random Type ['{pickType}']");
             if (pickType == "nodouble")
             {
-                foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+                List<ulong> currentPool = new();
+                foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                 {
                     Debug.Log($"Searching {player}, {player.isPlayerControlled}, {player.actualClientId}");
-                    if (player.isPlayerControlled)
+                    if (player.isPlayerControlled && player.actualClientId != lastSeekerId && !Plugin.seekers.Contains(player))
                     {
                         Debug.Log($"Added {player}!");
-                        curretPool.Add(player.actualClientId);
+                        currentPool.Add(player.actualClientId);
                     }
                 }
 
-                while (seekerPlayerId == 10001 || seekerPlayerId == lastSeekerId)
+                if (currentPool.Count > 0)
                 {
-                    int r = Random.Range(0, curretPool.Count);
+                    int r = Random.Range(0, currentPool.Count);
                     Debug.Log("[NoDouble] RandomPlayerNumber = " + r);
-                    seekerPlayerId = curretPool[r];
-
-                    if (GameNetworkManager.Instance.connectedPlayers == 1)
-                    {
-                        break;
-                    }
+                    seekerPlayerId = currentPool[r];
+                }
+                else
+                {
+                    seekerPlayerId = GameNetworkManager.Instance.localPlayerController.actualClientId;
                 }
             }
             else if (pickType == "turns")
             {
+                List<ulong> currentPool = new();
+
                 // Update Pools
-                foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+                foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                 {
-                    if (!curretPool.Contains(player.actualClientId) && !pastSeekers.Contains(player.actualClientId)) // New player appears
+                    if (player.isPlayerControlled && !pastSeekers.Contains(player.actualClientId) && !Plugin.seekers.Contains(player)) // New player appears
                     {
-                        curretPool.Add(player.actualClientId);
-                    }
-                    if (curretPool.Contains(player.actualClientId) && !player.isPlayerControlled && !player.isPlayerDead) // Player Left
-                    {
-                        curretPool.Remove(player.actualClientId);
+                        currentPool.Add(player.actualClientId);
                     }
                 }
 
-                if (curretPool.Count == 0)
+                if (currentPool.Count <= 0)
                 {
-                    foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+                    pastSeekers.Clear();
+                    foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                     {
-                        if (player.isPlayerControlled)
+                        if (player.isPlayerControlled && !Plugin.seekers.Contains(player))
                         {
-                            curretPool.Add(player.actualClientId);
+                            currentPool.Add(player.actualClientId);
                         }
                     }
-                    pastSeekers.Clear();
                 }
 
                 // Generate
-                int r = Random.Range(0, curretPool.Count);
-                Debug.Log("[Turns] RandomPlayerNumber = " + r);
-                seekerPlayerId = curretPool[r];
+                int r = Random.Range(0, currentPool.Count);
+                Debug.Log($"[Turns] RandomPlayerNumber = '{r}' Number In Current Pool '{currentPool.Count}'");
+                seekerPlayerId = currentPool[r];
 
                 // Upate Pools
-                if (curretPool.Contains(seekerPlayerId))
+                if (currentPool.Contains(seekerPlayerId))
                 {
-                    curretPool.Remove(seekerPlayerId);
+                    currentPool.Remove(seekerPlayerId);
                     pastSeekers.Add(seekerPlayerId);
                 }
 
 
                 Debug.LogWarning("---- New Pools! ----");
                 Debug.LogWarning("CurrentPool = ");
-                Debug.Log(curretPool.ToArray());
+                Debug.Log(currentPool.ToArray());
                 Debug.LogWarning("PastSeekers = ");
                 Debug.Log(pastSeekers.ToArray());
             }
@@ -499,17 +538,19 @@ namespace HideAndSeek.Patches
             }
             else
             {
-                foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+                List<ulong> currentPool = new();
+
+                foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                 {
-                    if (player.isPlayerControlled)
+                    if (player.isPlayerControlled && !Plugin.seekers.Contains(player))
                     {
-                        curretPool.Add(player.actualClientId);
+                        currentPool.Add(player.actualClientId);
                     }
                 }
 
-                int r = Random.Range(0, curretPool.Count);
+                int r = Random.Range(0, currentPool.Count);
                 Debug.Log("[Random] RandomPlayerNumber = " + r);
-                seekerPlayerId = curretPool[r];
+                seekerPlayerId = currentPool[r];
             }
 
             PlayerControllerB playerChosen = GetPlayerWithClientId(seekerPlayerId);
@@ -585,26 +626,40 @@ namespace HideAndSeek.Patches
             return ulong.Parse(playerIDString);
         }
         static bool rewardedPlayersD = false;
-        static bool seekerWon = false;
-        public static void PlayerDied(string reason = "", int aPC = -1, bool checking = false)
+        static bool seekersWon = false;
+        public static void PlayerDied(string reason = "", bool checking = false)
         {
-            int alivePlayerCount = aPC;
-            if (alivePlayerCount == -1) alivePlayerCount = StartOfRound.Instance.livingPlayers;
+            int aliveHidersCount = 0;
+            int aliveSeekersCount = 0;
+
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+            {
+                if (Plugin.seekers.Contains(player) && !player.isPlayerDead)
+                {
+                    // Alive Seeker
+                    aliveSeekersCount++;
+                }
+                else if (!player.isPlayerDead)
+                {
+                    // Alive Hider
+                    aliveHidersCount++;
+                }
+            }
 
             if (checking)
-                Debug.Log($"Checking dead people... Seeker dead: {Plugin.seekerPlayer.isPlayerDead} Alive hider count: {alivePlayerCount - 1} Is ship leaving: {StartOfRound.Instance.shipIsLeaving}");
+                Debug.Log($"Checking dead people... Seekers dead: {aliveSeekersCount <= 0} Alive hider count: {aliveHidersCount} Is ship leaving: {StartOfRound.Instance.shipIsLeaving}");
             if (StartOfRound.Instance.shipIsLeaving) { return; }
 
 
-            StartMatchLever lever = GameObject.FindObjectOfType<StartMatchLever>();
-            if (Plugin.seekerPlayer.isPlayerDead)
+            StartMatchLever lever = GameObject.FindAnyObjectByType<StartMatchLever>();
+            if (aliveSeekersCount <= 0)
             {
                 if (!rewardedPlayersD)
                 {
                     rewardedPlayersD = true;
-                    foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+                    foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                     {
-                        if (player != Plugin.seekerPlayer && player.gameObject.activeSelf)
+                        if (!Plugin.seekers.Contains(player) && player.gameObject.activeSelf && !player.isPlayerDead)
                         {
                             NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
                         }
@@ -627,13 +682,16 @@ namespace HideAndSeek.Patches
                     Debug.LogMessage("_________ PLAYER DIED! _________");
                 }
 
-                if (alivePlayerCount == 1 && GameNetworkManager.Instance.connectedPlayers != 1)
+                if (aliveHidersCount <= 0 && GameNetworkManager.Instance.connectedPlayers != 1) // Last part is for testing in solo, so I don't get immidiently kicked out
                 {
                     if (!rewardedPlayersD)
                     {
                         rewardedPlayersD = true;
-                        seekerWon = true;
-                        NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: Plugin.seekerPlayer.actualClientId, __int: 500, __string: "silent")); // Give Seeker Money
+                        seekersWon = true;
+                        foreach (var player in Plugin.seekers)
+                        {
+                            NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 500, __string: "silent")); // Give Seeker Money
+                        }
                     }
                     if (!checking)
                     {
@@ -643,9 +701,9 @@ namespace HideAndSeek.Patches
                     lever.EndGame();
                     lever.LeverAnimation();
                 }
-                else if (alivePlayerCount > 1 && !checking)
+                else if (aliveHidersCount >= 1 && !checking)
                 {
-                    if (alivePlayerCount == 2) // One hider left
+                    if (aliveHidersCount == 1) // One hider left
                     {
                         if (Config.shipLeaveEarly.Value && Config.timeWhenLastHider.Value > TimeOfDay.Instance.currentDayTime)
                             NetworkHandler.Instance.EventSendRpc(".setDayTime", new(__float: Config.timeWhenLastHider.Value));
@@ -654,7 +712,7 @@ namespace HideAndSeek.Patches
                     }
                     else
                     {
-                        NetworkHandler.Instance.EventSendRpc(".tip", new(__string: $"{alivePlayerCount - 1} Hiders Remain..."));
+                        NetworkHandler.Instance.EventSendRpc(".tip", new(__string: $"{aliveHidersCount} Hiders Remain..."));
                     }
 
                 }
@@ -662,14 +720,14 @@ namespace HideAndSeek.Patches
 
             if (!checking)
             {
-                Debug.LogMessage($"_________ ({alivePlayerCount}) Players Left! _________");
+                Debug.LogMessage($"_________ ({aliveHidersCount+aliveSeekersCount}) Players Left! _________");
             }
         }
         public static IEnumerator GivePlayersItems()
         {
             List<PlayerControllerB> players = new();
 
-            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
                 if (player.isPlayerControlled)
                 {
@@ -710,7 +768,7 @@ namespace HideAndSeek.Patches
             // Spawn Items
             foreach (var player in players)
             {
-                if (player == Plugin.seekerPlayer)
+                if (Plugin.seekers.Contains(player))
                 {
                     // Seeker
                     if (!string.IsNullOrEmpty(Config.seekerItemSlot1.Value))
@@ -762,10 +820,21 @@ namespace HideAndSeek.Patches
             Debug.LogMessage("SpawnNewItem()!");
             Item[] items = Resources.FindObjectsOfTypeAll<Item>();
 
+            string targetItem = itemName;
+
+            if (itemName.Contains(","))
+            {
+                string[] itemNames = itemName.Split(",");
+
+                int r = Random.Range(0, itemNames.Length);
+
+                targetItem = itemNames[r];
+            }
+
             int i = 0;
             foreach (var item in items)
             {
-                if (item.itemName.ToLower().Trim() == itemName.ToLower().Trim())
+                if (item.itemName.ToLower().Trim() == targetItem.ToLower().Trim())
                 {
                     break;
                 }
@@ -774,7 +843,7 @@ namespace HideAndSeek.Patches
 
             if (i == items.Length)
             {
-                Debug.LogWarning($"Could not find {itemName} in items id list! (Look at README.md to see item IDs)");
+                Debug.LogWarning($"Could not find {targetItem} in items id list! (Look at README.md to see item IDs)");
                 yield break;
             }
 
@@ -835,7 +904,7 @@ namespace HideAndSeek.Patches
         {
             List<PlayerControllerB> players = new();
 
-            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
                 if (player.isPlayerControlled)
                 {
@@ -931,7 +1000,7 @@ namespace HideAndSeek.Patches
         [HarmonyPrefix]
         static void StartPatch(Turret __instance)
         {
-            if (!Config.turretsEnabled.Value)
+            if (!Config.turretsEnabled.Value && TimeOfDay.Instance.currentDayTime <= Config.timeSeekerIsReleased.Value) // When seeker is not active
             {
                 Debug.LogWarning("Turret Found! Deleteing...");
                 __instance.NetworkObject.Despawn();
@@ -1065,9 +1134,9 @@ namespace HideAndSeek.Patches
         [HarmonyPrefix]
         static void StartPatch(Landmine __instance)
         {
-            Debug.LogWarning("Landmine Found!");
-            if (!Config.landminesEnabled.Value && GameNetworkManager.Instance.isHostingGame)
+            if (!Config.landminesEnabled.Value && TimeOfDay.Instance.currentDayTime <= Config.timeSeekerIsReleased.Value) // When seeker is not active
             {
+                Debug.LogWarning("Landmine Found!");
                 __instance.NetworkObject.Despawn();
                 Debug.Log("Deleteing...");
             }
@@ -2997,7 +3066,8 @@ namespace HideAndSeek.Patches
         static bool DamagePlayerPatch(CauseOfDeath causeOfDeath = CauseOfDeath.Unknown)
         {
             Debug.LogMessage($"Damaged recived: {causeOfDeath}");
-            if (Plugin.seekerPlayer == GameNetworkManager.Instance.localPlayerController) // Is seeker
+            PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
+            if (Plugin.seekers.Contains(localPlayer) || Plugin.zombies.Contains(localPlayer)) // Is seeker
             {
                 if (causeOfDeath == CauseOfDeath.Abandoned)
                 {
@@ -3009,7 +3079,7 @@ namespace HideAndSeek.Patches
                 }
                 if (causeOfDeath == CauseOfDeath.Gunshots)
                 {
-                    Debug.LogMessage("You can't die to your own weapon!");
+                    //Debug.LogMessage("You can't die to your own weapon!");
                     return false;
                 }
             }
@@ -3104,7 +3174,7 @@ namespace HideAndSeek.Patches
         public static bool TeleportPlayerPatch()
         {
             List<PlayerControllerB> players = new List<PlayerControllerB>();
-            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
                 if (player.isPlayerControlled)
                 {
@@ -3113,8 +3183,8 @@ namespace HideAndSeek.Patches
             }
 
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
-            Debug.Log($"Comparing {localPlayer} to {Plugin.seekerPlayer}");
-            if(localPlayer != Plugin.seekerPlayer && RoundManagerPatch.playersTeleported >= players.Count && Config.lockHidersInside.Value)
+
+            if(!Plugin.seekers.Contains(localPlayer) && !Plugin.zombies.Contains(localPlayer) && RoundManagerPatch.playersTeleported >= players.Count && Config.lockHidersInside.Value)
             {
                 HUDManager.Instance.DisplayTip("???", "The entrance appears to be blocked.");
                 return false;
@@ -3162,10 +3232,10 @@ namespace HideAndSeek.Patches
             HUDManager.Instance.profitQuotaDaysLeftText.text = $"Round {CurrentRound}";
             HUDManager.Instance.profitQuotaDaysLeftText2.text = $"Round {CurrentRound}";
             StartOfRound.Instance.deadlineMonitorText.text = $"Round:\n {CurrentRound}";
-            TimeOfDay.Instance.quotaVariables.deadlineDaysAmount = 999;
-            TimeOfDay.Instance.timeUntilDeadline = 999;
-            TimeOfDay.Instance.daysUntilDeadline = 999;
-            TimeOfDay.Instance.hoursUntilDeadline = 999;
+            TimeOfDay.Instance.quotaVariables.deadlineDaysAmount = 3;
+            TimeOfDay.Instance.timeUntilDeadline = 3;
+            TimeOfDay.Instance.daysUntilDeadline = 3;
+            TimeOfDay.Instance.hoursUntilDeadline = 3;
         }
     }
 

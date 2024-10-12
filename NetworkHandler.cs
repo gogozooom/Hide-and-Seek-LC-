@@ -34,6 +34,7 @@ namespace HideAndSeek
             NetworkEvent += SyncingPatch.LevelLoading;
             NetworkEvent += SyncingPatch.LevelLoaded;
             NetworkEvent += SyncingPatch.PlayerChosen;
+            NetworkEvent += SyncingPatch.SeekersChosen;
             NetworkEvent += SyncingPatch.LockDoor;
             NetworkEvent += SyncingPatch.OpenDoor;
             NetworkEvent += SyncingPatch.PlayerTeleported;
@@ -56,6 +57,7 @@ namespace HideAndSeek
             NetworkEvent -= SyncingPatch.LevelLoading;
             NetworkEvent -= SyncingPatch.LevelLoaded;
             NetworkEvent -= SyncingPatch.PlayerChosen;
+            NetworkEvent -= SyncingPatch.SeekersChosen;
             NetworkEvent -= SyncingPatch.LockDoor;
             NetworkEvent -= SyncingPatch.OpenDoor;
             NetworkEvent -= SyncingPatch.PlayerTeleported;

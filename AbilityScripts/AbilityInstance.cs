@@ -98,7 +98,7 @@ namespace HideAndSeek.AbilityScripts
         bool roundStarted = false;
         void Update()
         {
-            if (!roundStarted && !StartOfRound.Instance.inShipPhase && Plugin.seekerPlayer)
+            if (!roundStarted && !StartOfRound.Instance.inShipPhase && Plugin.seekers.Count > 0)
             {
                 // Round started
                 roundStarted = true;
@@ -243,7 +243,7 @@ namespace HideAndSeek.AbilityScripts
             if (ability != null)
             {
                 // Valid check
-                bool isSeeker = attachedPlayer == Plugin.seekerPlayer;
+                bool isSeeker = Plugin.seekers.Contains(attachedPlayer);
 
                 if (ability.abilityCost > money)
                 {
@@ -283,7 +283,7 @@ namespace HideAndSeek.AbilityScripts
                 if (!(ability.seekerAbility && isSeeker || ability.hiderAbility && !isSeeker)) // If neither are true
                 {
                     Debug.Log($"[Client] Could not pass proper ability user check! AbilityName: '{ability.abilityName}'");
-                    if(attachedPlayer == Plugin.seekerPlayer)
+                    if(isSeeker)
                     {
                         DisplayTip($"This ability is only for hiders!!");
                     }

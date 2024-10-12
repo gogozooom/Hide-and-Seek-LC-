@@ -104,7 +104,7 @@ namespace HideAndSeek.AbilityScripts
             {
                 // Valid check
 
-                bool isSeeker = player == Plugin.seekerPlayer;
+                bool isSeeker = Plugin.seekers.Contains(player);
 
                 if (ability.abilityCost > playerAbilities.money)
                 {

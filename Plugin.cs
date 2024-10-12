@@ -9,6 +9,7 @@ using HideAndSeek.Patches;
 using UnityEngine;
 using Debug = Debugger.Debug;
 using static BepInEx.BepInDependency;
+using System.Collections.Generic;
 
 namespace HideAndSeek
 {
@@ -23,7 +24,8 @@ namespace HideAndSeek
         public static ManualLogSource _Logger;
         public static Plugin instance;
         public static Config _Config;
-        public static PlayerControllerB seekerPlayer;
+        public static List<PlayerControllerB> seekers = new();
+        public static List<PlayerControllerB> zombies = new();
         public static AssetBundle networkHandlerBundle;
         public static AssetBundle abilityRadialMenuBundle;
         readonly Harmony harmony = new Harmony(PLUGIN_GUID);

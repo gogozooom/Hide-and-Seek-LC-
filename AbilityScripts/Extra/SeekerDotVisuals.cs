@@ -25,7 +25,7 @@ namespace HideAndSeek.AbilityScripts.Extra
                 Transform localCamera = GameNetworkManager.Instance.localPlayerController.gameplayCamera.transform;
 
                 gameObject.transform.LookAt(localCamera.position);
-                if (Plugin.seekerPlayer)
+                if (Plugin.seekers.Count > 0)
                 {
                     if ((localCamera.position - targetPosition).magnitude < 3)
                     {
@@ -37,7 +37,7 @@ namespace HideAndSeek.AbilityScripts.Extra
                         spriteRender.enabled = true;
                     }
 
-                    float distanceFromSeeker = (Plugin.seekerPlayer.transform.position - targetPosition).magnitude;
+                    float distanceFromSeeker = (localCamera.position - targetPosition).magnitude;
                     Vector3 trackDirection = (targetPosition - gameObject.transform.position).normalized;
 
                     float tValue = Mathf.Clamp((distanceFromSeeker-9)/30, 0, 2);

@@ -145,7 +145,7 @@ namespace HideAndSeek.AbilityScripts
         #region Hidden
         static void GiveMoneyServerEvent(AbilityBase ability, ulong activatorId)
         {
-            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
                 if (player.isPlayerControlled)
                 {
@@ -158,34 +158,23 @@ namespace HideAndSeek.AbilityScripts
         #region CriticalInjury
         static void CriticalInjuryServerEvent(AbilityBase ability, ulong activatorId)
         {
-            bool seekerUsedAbility = false;
+            PlayerControllerB activatorPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
 
-            if (Plugin.seekerPlayer)
-            {
-                seekerUsedAbility = Plugin.seekerPlayer.actualClientId == activatorId;
-            }
+            bool seekerUsedAbility = Plugin.seekers.Contains(activatorPlayer);
 
             ulong playerTarget = 10001;
 
-            if (seekerUsedAbility)
+            float closestPlayer = 10000f;
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
-                float closestPlayer = 10000f;
-                foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
-                {
-                    if (!player.isPlayerControlled || player.isPlayerDead || player == Plugin.seekerPlayer) continue; // Invalid Target
+                if (!player.isPlayerControlled || player.isPlayerDead || Plugin.seekers.Contains(player) == seekerUsedAbility) continue; // Invalid Target | 'Plugin.seekers.Contains(player) == seekerUsedAbility' Is of my kind
 
-                    float distance = (player.transform.position - Plugin.seekerPlayer.transform.position).magnitude;
-                    if (distance < closestPlayer)
-                    {
-                        playerTarget = player.actualClientId;
-                        closestPlayer = distance;
-                    }
+                float distance = (player.transform.position - activatorPlayer.transform.position).magnitude;
+                if (distance < closestPlayer)
+                {
+                    playerTarget = player.actualClientId;
+                    closestPlayer = distance;
                 }
-            }
-            else
-            {
-                if (Plugin.seekerPlayer)
-                    playerTarget = Plugin.seekerPlayer.actualClientId;
             }
 
             if (playerTarget == 10001)
@@ -462,7 +451,7 @@ namespace HideAndSeek.AbilityScripts
 
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
             PlayerControllerB userPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
-            bool isUserSeeker = userPlayer == Plugin.seekerPlayer;
+            bool isUserSeeker = Plugin.seekers.Contains(userPlayer);
 
             if(localPlayer.actualClientId == activatorId)
             {
@@ -481,14 +470,20 @@ namespace HideAndSeek.AbilityScripts
             {
                 if(networkObject.NetworkObjectId == ulong.Parse(extraMessage.Split("~")[2]))
                 {
+                    // Found target monster
                     SpawnAbilityInfo info = networkObject.gameObject.AddComponent<SpawnAbilityInfo>();
-                    info.creatorPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
-                    if (!isUserSeeker)
+                    info.creatorPlayer = userPlayer;
+
+                    if (isUserSeeker)
+                    {
+                        info.otherFriendlies = Plugin.seekers;
+                    }
+                    else
                     {
                         info.otherFriendlies = new();
-                        foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+                        foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                         {
-                            if(player != Plugin.seekerPlayer)
+                            if (!Plugin.seekers.Contains(player))
                             {
                                 info.otherFriendlies.Add(player);
                             }
@@ -569,9 +564,9 @@ namespace HideAndSeek.AbilityScripts
 
             List<ulong> playerList = new();
 
-            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
-                if (player != Plugin.seekerPlayer && player.isPlayerControlled && !player.isPlayerDead && player.actualClientId != activatorId)
+                if (!Plugin.seekers.Contains(player) && player.isPlayerControlled && !player.isPlayerDead && player.actualClientId != activatorId)
                 {
                     playerList.Add(player.actualClientId);
                 }
@@ -683,24 +678,26 @@ namespace HideAndSeek.AbilityScripts
         }
         static IEnumerator HeatSeekingServerEventCoroutine(AbilityBase ability, ulong activatorId)
         {
-            List<PlayerControllerB> hiders = new List<PlayerControllerB>();
-            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+            PlayerControllerB activatorPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
+
+            List<PlayerControllerB> targets = new List<PlayerControllerB>();
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
-                if (player.isPlayerControlled && !player.isPlayerDead && player.actualClientId != activatorId)
+                if (player.isPlayerControlled && !player.isPlayerDead && Plugin.seekers.Contains(player) != Plugin.seekers.Contains(activatorPlayer))
                 {
                     Debug.LogWarning("Adding player: " + player + " To targets!");
-                    hiders.Add(player);
+                    targets.Add(player);
                 }
             }
 
-            int r = Random.Range(0, hiders.Count);
+            int r = Random.Range(0, targets.Count);
 
-            if (hiders.Count > 0)
+            if (targets.Count > 0)
             {
-                Debug.LogWarning("Player id chosen: " + hiders[r]);
+                Debug.LogWarning("Player id chosen: " + targets[r]);
                 while (StartOfRound.Instance.shipHasLanded)
                 {
-                    ability.ActivateClient(activatorId, "TG:"+hiders[r].actualClientId.ToString());
+                    ability.ActivateClient(activatorId, "TG:"+targets[r].actualClientId.ToString());
                     foreach (var item in dots.ToArray())
                     {
                         if(item.targetedPlayer.isPlayerDead == true)
@@ -729,6 +726,7 @@ namespace HideAndSeek.AbilityScripts
         static void HeatSeekingClientEvent(AbilityBase ability, ulong activatorId, string extraMessage = null)
         {
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
+            PlayerControllerB activatorPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
             AbilityInstance localAbilityInstance = localPlayer.GetComponent<AbilityInstance>();
 
             if(extraMessage == "CLEAN" || localPlayer.isPlayerDead)
@@ -753,7 +751,7 @@ namespace HideAndSeek.AbilityScripts
                     // User
                     var newDot = new GameObject().AddComponent<SeekerDotVisuals>();
 
-                    foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+                    foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                     {
                         if (player.actualClientId == targetId)
                         {
@@ -769,10 +767,10 @@ namespace HideAndSeek.AbilityScripts
                     // Target
                     dots.Add(new GameObject().AddComponent<SeekerDotVisuals>());
 
-                    dots[0].gameObject.name = Plugin.seekerPlayer.playerUsername;
-                    dots[0].targetedPlayer = Plugin.seekerPlayer;
+                    dots[0].gameObject.name = activatorPlayer.playerUsername;
+                    dots[0].targetedPlayer = activatorPlayer;
 
-                    localAbilityInstance.DisplayTip($"You're getting tracked by '{Plugin.seekerPlayer.playerUsername}'", true);
+                    localAbilityInstance.DisplayTip($"You're getting tracked by '{activatorPlayer.playerUsername}'", true);
                 }
             }
 
