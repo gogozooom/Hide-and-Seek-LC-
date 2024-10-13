@@ -359,7 +359,7 @@ namespace HideAndSeek
                 "2:Players.Seeker",
                 "Extra Seeker Choose Behavior",
                 "Turns",
-                "'None' (Just a random range generator), 'Turns' (Will not pick someone that was already seeker, resets when everyone got a chance), 'Ship' (!WIP! Players in the ship will be seeker)"
+                "'None' (Just a random range generator), 'Turns' (Will not pick someone that was already seeker, resets when everyone got a chance), 'Lever' (!WIP! Players nearest to the lever will be the seeker)"
             );
             isSeekerImmune = cfg.Bind(
                 "2:Players.Seeker",

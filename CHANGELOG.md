@@ -3,6 +3,7 @@
     - Multiple Seekers!
         - There is now a config file for specifying the number of seekers each round, both static (1-4... etc) and scaling (20%-55.55%... etc).
     - Ship Teleporter effects to the Teleport and Swap ability.
+    - Username colors for each role (Configurable)
 - Changed:
     - Starting item slots can now be randomized! (Config Example, 'Shovel, Yeild Sign, Stop Sign' will have a 1 out of 3 chance for each item)
 - Fixed:

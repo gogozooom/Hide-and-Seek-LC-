@@ -69,6 +69,19 @@ namespace HideAndSeek.Patches
             {
                 HUDManager.Instance.DisplayTip("Hide And Seek", $"Seeker(s) chosen this round [{mProps._string}]");
             }
+            foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+            {
+                if (Plugin.seekers.Contains(player))
+                {
+                    // Seeker
+                    player.usernameBillboardText.color = Config.seekerNameColor.Value;
+                }
+                else
+                {
+                    // Hider
+                    player.usernameBillboardText.color = Config.hiderNameColor.Value;
+                }
+            }
         }
         public static void LockDoor(string eventName, MessageProperties mProps = null)
         {

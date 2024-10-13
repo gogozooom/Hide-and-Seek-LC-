@@ -690,6 +690,8 @@ namespace HideAndSeek.AbilityScripts
                 }
             }
 
+            Debug.LogMessage($"[Heat Seeking] Target count = '{targets.Count}'");
+
             int r = Random.Range(0, targets.Count);
 
             if (targets.Count > 0)

@@ -16,7 +16,9 @@ Features:
 
 	DONE : Support for multiple seekers.
 	
-	DONE : Random item choices
+	DONE : Random item choices.
+
+	DONE : User name colors.
 
 	IMPLEMENTING : Give purpose to caught hiders.
 
