@@ -14,7 +14,7 @@
 - Balancing:
     - Teleport and Swap
         - Startup cooldown = 3
-More to be added...
+- More to be added...
 
 ## v1.3.3 Small Update
 - Added:
