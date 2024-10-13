@@ -14,7 +14,7 @@ Features:
 
 	DONE : Make teleport and swap ability take a few seconds to teleport you.
 
-	DONE : Support for multiple hiders.
+	DONE : Support for multiple seekers.
 	
 	DONE : Random item choices
 
