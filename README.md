@@ -4,7 +4,7 @@
 - A config allowing a wide range of behaviors allowing the seeker or the hiders to have a slightly better advantage
 - Infinite money so you don't have to get a few things back just to go to Titan for a few rounds
 
-## v1.4.0.0 Major update
+## v1.4.0.1 Major update
 - Added:
     - Multiple Seekers!
         - There is now a config file for specifying the number of seekers each round, both static (1-4... etc) and scaling (20%-55.55%... etc).
