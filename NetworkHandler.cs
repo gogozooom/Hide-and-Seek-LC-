@@ -47,6 +47,8 @@ namespace HideAndSeek
             NetworkEvent += SyncingPatch.ActivateAbility;
             NetworkEvent += SyncingPatch.SetDayTime;
             NetworkEvent += SyncingPatch.GrabItem;
+            NetworkEvent += SyncingPatch.RequestAbilityConfig;
+            NetworkEvent += SyncingPatch.ReceiveAbilityConfig;
 
             NetworkMessage.OnReceivedFromClient += EventRecivedRpc;
         }
@@ -70,6 +72,8 @@ namespace HideAndSeek
             NetworkEvent -= SyncingPatch.ActivateAbility;
             NetworkEvent -= SyncingPatch.SetDayTime;
             NetworkEvent -= SyncingPatch.GrabItem;
+            NetworkEvent -= SyncingPatch.RequestAbilityConfig;
+            NetworkEvent += SyncingPatch.ReceiveAbilityConfig;
             base.OnDestroy();
         }
 
@@ -104,7 +108,7 @@ namespace HideAndSeek
             {
                 NetworkEvent?.Invoke(eventName, new MessageProperties(__null:true));
             }
-            Debug.LogMessage("[Client] Event! + " + eventName + " Info: " + message + " Raw Data: " + data);
+            //Debug.LogMessage("[Client] Event! + " + eventName + " Info: " + message + " Raw Data: " + data);
         }
     }
 }

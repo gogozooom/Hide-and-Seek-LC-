@@ -58,6 +58,10 @@ namespace HideAndSeek.AbilityScripts
         {
             Debug.Log("AbilityUI Awake(): Initalizing References!");
 
+            Debug.LogWarning("Reading Config!");
+
+            Abilities.ReadConfigFile();
+
             StartCoroutine(Initalize());
         }
 

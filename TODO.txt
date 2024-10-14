@@ -20,6 +20,8 @@ Features:
 
 	DONE : User name colors.
 
+	DONE : Ability config.
+
 	IMPLEMENTING : Give purpose to caught hiders.
 
 	Hiders escape back to ship (Hider Objective)

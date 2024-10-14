@@ -1,9 +1,10 @@
-## v1.4.0.0 Major update
+## v1.4.0.1 Major update
 - Added:
     - Multiple Seekers!
         - There is now a config file for specifying the number of seekers each round, both static (1-4... etc) and scaling (20%-55.55%... etc).
     - Ship Teleporter effects to the Teleport and Swap ability.
     - Username colors for each role (Configurable)
+    - Configure the prices, delay, and more with the 'Abilities.Cfg' config file! (Automatically generated once game is launched for the first time. Last config is incompatible with different version numbers)
 - Changed:
     - Starting item slots can now be randomized! (Config Example, 'Shovel, Yeild Sign, Stop Sign' will have a 1 out of 3 chance for each item)
 - Fixed:
@@ -14,7 +15,7 @@
 - Balancing:
     - Teleport and Swap
         - Startup cooldown = 3
-More to be added...
+- More to be added...
 
 ## v1.3.3 Small Update
 - Added:

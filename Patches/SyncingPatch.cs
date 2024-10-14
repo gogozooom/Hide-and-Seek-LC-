@@ -270,6 +270,38 @@ namespace HideAndSeek.Patches
                 }
             }
         }
+        public static void RequestAbilityConfig(string eventName, MessageProperties mProps)
+        {
+            if (eventName != ".requestAbilityConfig" || !GameNetworkManager.Instance.isHostingGame) return;
+
+            Debug.Log("Got RequestAbilityConfig()");
+
+            if (mProps._string != "")
+            {
+                AbilityConfig cfg = Abilities.FindAbilityConfigByName(mProps._string, true);
+
+                if (cfg == null) return;
+                NetworkHandler.Instance.EventSendRpc(".receiveAbilityConfig", new(__ulong: mProps._ulong, __extraMessage: Abilities.AbilityCfgToData(cfg, false)));
+            }
+            else
+            {
+                foreach (var cfg in Abilities.abilityConfigs)
+                {
+                    NetworkHandler.Instance.EventSendRpc(".receiveAbilityConfig", new(__ulong: mProps._ulong, __extraMessage:Abilities.AbilityCfgToData(cfg, false)));
+                }
+            }
+
+        }
+        public static void ReceiveAbilityConfig(string eventName, MessageProperties mProps)
+        {
+            if (eventName != ".receiveAbilityConfig" || GameNetworkManager.Instance.localPlayerController.actualClientId != mProps._ulong) return;
+
+            Debug.Log("Got ReceiveAbilityConfig()");
+
+            Debug.Log($"Data = '{mProps._extraMessage}'");
+
+            Abilities.LoadAbilityConfig(Abilities.ADataToCfg(mProps._extraMessage));
+        }
         static void GrabObject(PlayerControllerB __this, GrabbableObject currentlyGrabbingObject)
         {
             Traverse.Create(__this).Field("currentlyGrabbingObject").SetValue(currentlyGrabbingObject);

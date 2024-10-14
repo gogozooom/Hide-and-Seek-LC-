@@ -4,10 +4,11 @@ using HideAndSeek.AudioScripts;
 using HideAndSeek.Patches;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.IO;
+using System.Xml.Linq;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Subsystems;
-using UnityEngine.UIElements.UIR;
 using Debug = Debugger.Debug;
 
 namespace HideAndSeek.AbilityScripts
@@ -123,6 +124,8 @@ namespace HideAndSeek.AbilityScripts
                 _abilityCost:999,
                 _oneTimeUse: true, _hiderAbility:false),
         }; 
+
+        public static List<AbilityConfig> abilityConfigs = new List<AbilityConfig>();
 
         // -- Ability Methods --
 
@@ -1028,16 +1031,7 @@ namespace HideAndSeek.AbilityScripts
         #endregion
 
         #region _FinderMethods_
-        public static AbilityBase FindAbilityIndex(int i)
-        {
-            if (abilities.Count <= i)
-            {
-                Debug.LogWarning($"FindAbilityIndex:'{i}' Index out of range!");
-                return null;
-            }
-            return abilities[i];
-        }
-        public static AbilityBase FindAbilityByName(string name)
+        public static AbilityBase FindAbilityByName(string name, bool raw = false)
         {
             AbilityBase ability = null;
 
@@ -1051,8 +1045,50 @@ namespace HideAndSeek.AbilityScripts
             }
 
             if (ability == null) Debug.LogWarning($"FindAbilityByName:'{name}' Could not find ability!");
+            else
+            {
+                if (!raw)
+                {
+                    AbilityConfig cfg = FindAbilityConfigByName(name);
+
+                    if (cfg != null)
+                    {
+                        if (cfg.syncedWithHost || GameNetworkManager.Instance.isHostingGame)
+                        {
+                            ability = ApplyCfgToAbility(ability, cfg);
+                        }
+                    }
+                }
+            }
 
             return ability;
+        }
+        public static AbilityConfig FindAbilityConfigByName(string name, bool check = false)
+        {
+            AbilityConfig abilityCfg = null;
+
+            foreach (var _ability in abilityConfigs)
+            {
+                if (_ability.abilityName.Equals(name.Trim(), System.StringComparison.CurrentCultureIgnoreCase))
+                {
+                    abilityCfg = _ability;
+                    break;
+                }
+            }
+
+            if (abilityCfg == null)
+            {
+                Debug.LogWarning($"FindAbilityConfigByName:'{name}' Could not find ability config!!");
+                if (!GameNetworkManager.Instance.isHostingGame && GameNetworkManager.Instance?.localPlayerController != null && !check)
+                {
+                    // Client
+                    Debug.LogMessage("Attempting request...");
+
+                    NetworkHandler.Instance.EventSendRpc(".requestAbilityConfig", new(__ulong: GameNetworkManager.Instance.localPlayerController.actualClientId, __string: name));
+                }
+            }
+
+            return abilityCfg;
         }
         public static bool AbilityExists(string name)
         {
@@ -1064,6 +1100,231 @@ namespace HideAndSeek.AbilityScripts
                 }
             }
             return false;
+        }
+        public static bool AbilityConfigExists(string name)
+        {
+            foreach (var _ability in abilityConfigs)
+            {
+                if (_ability.abilityName.Equals(name, System.StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public static void LoadAbilityConfig(AbilityConfig cfg)
+        {
+            if (cfg == null) return;
+
+            foreach (var item in abilityConfigs.ToArray())
+            {
+                if (item.abilityName.Equals(cfg.abilityName, System.StringComparison.CurrentCultureIgnoreCase))
+                {
+                    abilityConfigs.Remove(item);
+                }
+            }
+            cfg.syncedWithHost = true;
+            abilityConfigs.Add(cfg);
+        }
+        #endregion
+
+        #region _OtherMethods_
+        public const string CFGfNAME = "Abilities.Cfg";
+        public static void AbilitiesToCfg()
+        {
+            abilityConfigs = new();
+            foreach (var ability in abilities)
+            {
+                if (ability.abilityCategory != "HIDDEN")
+                {
+                    abilityConfigs.Add(AbilityToCfg(ability));
+                }
+            }
+        }
+        public static AbilityConfig AbilityToCfg(AbilityBase ability)
+        {
+            return new(ability.abilityName,
+                                ability.abilityCost, ability.abilityDelay,
+                                ability.oneTimeUse, ability.seekerAbility,
+                                ability.hiderAbility, ability.requiresRoundActive, ability.requiresSeekerActive);
+        }
+        public static AbilityBase ApplyCfgToAbility(AbilityBase ability, AbilityConfig cfg)
+        {
+            ability.abilityCost = cfg.abilityCost;
+            ability.abilityDelay = cfg.abilityDelay;
+            ability.oneTimeUse = cfg.oneTimeUse;
+            ability.seekerAbility = cfg.seekerAbility;
+            ability.hiderAbility = cfg.hiderAbility;
+            ability.requiresRoundActive = cfg.requiresRoundActive;
+            ability.requiresSeekerActive = cfg.requiresSeekerActive;
+
+            return ability;
+        }
+        public static string AbilityCfgToData(AbilityConfig aCfg, bool format = true)
+        {
+            string data = string.Empty;
+            if (format)
+            {
+                data += aCfg.abilityName + " {\r\n" +
+                        $"\t{nameof(aCfg.abilityCost)} = {aCfg.abilityCost};\r\n" +
+                        $"\t{nameof(aCfg.seekerAbility)} = {aCfg.seekerAbility};\r\n" +
+                        $"\t{nameof(aCfg.hiderAbility)} = {aCfg.hiderAbility};\r\n" +
+                        $"\t{nameof(aCfg.requiresRoundActive)} = {aCfg.requiresRoundActive};\r\n" +
+                        $"\t{nameof(aCfg.requiresSeekerActive)} = {aCfg.requiresSeekerActive};\r\n" +
+                        $"\t{nameof(aCfg.abilityDelay)} = {aCfg.abilityDelay};\r\n" +
+                        $"\t{nameof(aCfg.oneTimeUse)} = {aCfg.oneTimeUse};\r\n" + "}";
+            }
+            else
+            {
+                data += aCfg.abilityName + "{" +
+                        $"{nameof(aCfg.abilityCost)}={aCfg.abilityCost};" +
+                        $"{nameof(aCfg.seekerAbility)}={aCfg.seekerAbility};" +
+                        $"{nameof(aCfg.hiderAbility)}={aCfg.hiderAbility};" +
+                        $"{nameof(aCfg.requiresRoundActive)}={aCfg.requiresRoundActive};" +
+                        $"{nameof(aCfg.requiresSeekerActive)}={aCfg.requiresSeekerActive};" +
+                        $"{nameof(aCfg.abilityDelay)}={aCfg.abilityDelay};" +
+                        $"{nameof(aCfg.oneTimeUse)}={aCfg.oneTimeUse};" + "}";
+            }
+            return data;
+        }
+        public static string AbilityCfgsToData(bool format = true)
+        {
+            if (abilityConfigs.Count <= 0) { Debug.LogError("Tried to ACfgToData but there is no ability config data!"); return null; }
+
+            string data = string.Empty;
+
+            foreach (var aCfg in abilityConfigs)
+            {
+                if (data != string.Empty && format)
+                {
+                    data += "\r\n";
+                }
+
+                data += AbilityCfgToData(aCfg, format);
+            }
+
+            return data;
+        }
+        public static AbilityConfig ADataToCfg(string d)
+        {
+            string[] s = d.Split("{");
+            string aName = s[0].Trim();
+            string data = s[1];
+
+            AbilityConfig aCfg = AbilityToCfg(FindAbilityByName(aName, true));
+
+            Debug.Log($"Reading Ability '{aName}'");
+
+            foreach (var item in data.Replace("}", "").Split(";"))
+            {
+                if (string.IsNullOrEmpty(item)) continue;
+
+                string name = item.Split("=")[0].Trim();
+                string value = item.Split("=")[1].Trim();
+
+                Debug.Log($"Reading Value '{name}' = '{value}'");
+
+                switch (name)
+                {
+                    case nameof(aCfg.abilityCost):
+                        aCfg.abilityCost = int.Parse(value);
+                        break;
+                    case nameof(aCfg.seekerAbility):
+                        aCfg.seekerAbility = bool.Parse(value);
+                        break;
+                    case nameof(aCfg.hiderAbility):
+                        aCfg.hiderAbility = bool.Parse(value);
+                        break;
+                    case nameof(aCfg.requiresRoundActive):
+                        aCfg.requiresRoundActive = bool.Parse(value);
+                        break;
+                    case nameof(aCfg.requiresSeekerActive):
+                        aCfg.requiresSeekerActive = bool.Parse(value);
+                        break;
+                    case nameof(aCfg.abilityDelay):
+                        aCfg.abilityDelay = float.Parse(value);
+                        break;
+                    case nameof(aCfg.oneTimeUse):
+                        aCfg.oneTimeUse = bool.Parse(value);
+                        break;
+                    default:
+                        Debug.LogError($"Could not read {name}!");
+                        break;
+                }
+            }
+            return aCfg;
+        }
+        public static List<AbilityConfig> ADataToCfgs(string data)
+        {
+            List<AbilityConfig> newACfgs = new();
+
+            Debug.LogWarning("_______ Cfg Input! \r\n" + data.Replace("\t", "").Replace("\r\n", ""));
+            foreach (var aCfgS in data.Replace("\t", "").Replace("\r\n", "").Split('}'))
+            {
+                if (string.IsNullOrEmpty(aCfgS)) continue;
+
+                var sCfData = ADataToCfg(aCfgS);
+
+                newACfgs.Add(sCfData);
+            }
+
+            return newACfgs;
+        }
+        public static void ReadConfigFile()
+        {
+            if (GameNetworkManager.Instance.isHostingGame)
+            {
+                var dllFolderPath = Path.GetDirectoryName(Plugin.instance.Info.Location);
+                var filePath = Path.Combine(dllFolderPath, CFGfNAME);
+
+                if (File.Exists(filePath))
+                {
+                    string data = File.ReadAllText(filePath);
+
+                    string version = data.Split("]")[0].Replace("[v", "");
+
+                    Debug.LogMessage($"Found File! {version}");
+                    if (version != Plugin.PLUGIN_VERSION)
+                    {
+                        Debug.LogError($"Config file version does not match the current version! cfg = 'v{version}' plugin = 'v{Plugin.PLUGIN_VERSION}' Making backup...");
+                        File.Move(filePath, Path.Combine(dllFolderPath, "v" + version + " - " + CFGfNAME));
+                        ReadConfigFile();
+                        return;
+                    }
+                    else
+                    {
+                        abilityConfigs = ADataToCfgs(data.Split("]")[1]);
+                    }
+                }
+                else
+                {
+                    AbilitiesToCfg();
+
+                    string data = $"[v{Plugin.PLUGIN_VERSION}]\r\n" + AbilityCfgsToData();
+
+                    Debug.LogWarning("______________ Got Data!: " + data);
+
+                    File.WriteAllText(filePath, data);
+                }
+            }
+            else
+            {
+                NetworkHandler.Instance.EventSendRpc(".requestAbilityConfig", new(__ulong:GameNetworkManager.Instance.localPlayerController.actualClientId));
+            }
+        }
+        public static void WriteConfigFile()
+        {
+            if (GameNetworkManager.Instance.isHostingGame)
+            {
+                var dllFolderPath = Path.GetDirectoryName(Plugin.instance.Info.Location);
+                var filePath = Path.Combine(dllFolderPath, CFGfNAME);
+
+                File.WriteAllText(filePath, AbilityCfgsToData());
+            }
+            else
+            {
+                Debug.LogWarning("Canceled writing config file because is not host!");
+            }
         }
         #endregion
     }

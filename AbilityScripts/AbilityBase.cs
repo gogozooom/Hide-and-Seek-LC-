@@ -19,7 +19,7 @@ namespace HideAndSeek.AbilityScripts
         public bool requiresRoundActive = true;
         public bool requiresSeekerActive = true;
 
-        public float abilityDelay = 10;
+        public float abilityDelay = 10f;
         public bool oneTimeUse = false;
 
         // Runtime Variables
