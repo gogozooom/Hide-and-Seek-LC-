@@ -569,7 +569,8 @@ namespace HideAndSeek.AbilityScripts
 
             if (!gameObject.activeSelf && !attachedPlayer.inTerminalMenu && !menuEnabled) // Enable
             {
-                if (attachedPlayer.isPlayerDead || !attachedPlayer.isPlayerControlled) { Debug.LogWarning($"Ur ded bruh, ca't du dat. Dead:{attachedPlayer.isPlayerDead} Controlled:{attachedPlayer.isPlayerControlled}"); return; }
+                if (!StartOfRound.Instance.inShipPhase)
+                    if (attachedPlayer.isPlayerDead || !attachedPlayer.isPlayerControlled || !Config.zombiesCanUseAbilities.Value && Plugin.zombies.Contains(attachedPlayer)) { return; }
 
                 gameObject.SetActive(true);
                 Cursor.lockState = CursorLockMode.None;

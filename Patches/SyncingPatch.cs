@@ -302,6 +302,15 @@ namespace HideAndSeek.Patches
 
             Abilities.LoadAbilityConfig(Abilities.ADataToCfg(mProps._extraMessage));
         }
+        public static void RevivePlayerLocal(string eventName, MessageProperties mProps)
+        {
+            if (eventName != ".revivePlayerLocal") return;
+
+            Debug.Log($"Got RevivePlayerLocal({mProps._ulong})");
+
+            PatchesManager.RevivePlayerLocal(RoundManagerPatch.GetPlayerWithClientId(mProps._ulong));
+        }
+        // Other Methods
         static void GrabObject(PlayerControllerB __this, GrabbableObject currentlyGrabbingObject)
         {
             Traverse.Create(__this).Field("currentlyGrabbingObject").SetValue(currentlyGrabbingObject);
@@ -364,8 +373,6 @@ namespace HideAndSeek.Patches
             __this.isGrabbingObjectAnimation = false;
             yield break;
         }
-
-        // Other Methods
         public static void TeleportPlayer()
         {
             Debug.LogMessage("Got Teleport Player Brodcast!");

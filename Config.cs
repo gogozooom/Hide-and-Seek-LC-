@@ -531,31 +531,31 @@ namespace HideAndSeek
             );
             zombieSpawnLocation = cfg.Bind(
                 "2:Players.Zombie",
-                "Lock Hiders Inside",
-                "Seeker",
-                "'Inside' : Teleports Zombies inside when spawning, 'Entrance' : Teleports Zombies to the main entrance when spawning, 'Ship' : Spawns Zombies in the ship, 'Seeker' : Teleports Zombies near the seeker"
+                "Zombie Spawn Location",
+                "Inside",
+                "'Inside' : Teleports Zombies inside when spawning, 'Entrance' : Teleports Zombies to the main entrance when spawning, 'Ship' : Spawns Zombies in the ship"
             );
             zombieItemSlot1 = cfg.Bind(
                 "2:Players.Zombie",
-                "Hider Item Slot 1",
+                "Zombie Item Slot 1",
                 "Stop sign, Yield sign, Shovel",
                 "The id of the item that will spawn in the first slot of the zombie. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             zombieItemSlot2 = cfg.Bind(
                 "2:Players.Zombie",
-                "Hider Item Slot 2",
+                "Zombie Item Slot 2",
                 "",
                 "The id of the item that will spawn in the second slot of the zombie. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             zombieItemSlot3 = cfg.Bind(
                 "2:Players.Zombie",
-                "Hider Item Slot 3",
+                "Zombie Item Slot 3",
                 "",
                 "The id of the item that will spawn in the third slot of the zombie. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );
             zombieItemSlot4 = cfg.Bind(
                 "2:Players.Zombie",
-                "Hider Item Slot 4",
+                "Zombie Item Slot 4",
                 "",
                 "The id of the item that will spawn in the fourth slot of the zombie. 'item1, item2' will randomly choose between the items listed (See README.md for list of Item IDs)"
             );

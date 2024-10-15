@@ -1,8 +1,11 @@
-## v1.4.0.1 Major update
+## v1.4.0.2 Major update
 - Added:
     - Multiple Seekers!
         - There is now a config file for specifying the number of seekers each round, both static (1-4... etc) and scaling (20%-55.55%... etc).
+    - Zombie Players!
+        - There is now a config file for enabling zombie players! After a hider dies, they will respawn with their own items and help the seeker find the last few hiders!
     - Ship Teleporter effects to the Teleport and Swap ability.
+    - Special sounds and effects to the Critical Injury ability.
     - Username colors for each role (Configurable)
     - Configure the prices, delay, and more with the 'Abilities.Cfg' config file! (Automatically generated once game is launched for the first time. Last config is incompatible with different version numbers)
 - Changed:
@@ -13,8 +16,14 @@
     - Unable to spawn Turrets or Landmines when natural spaning of them is disabled in the config.
     - "You have zero days left to meet the profit quota." What profit quota?
 - Balancing:
-    - Teleport and Swap
+    - Teleport
         - Startup cooldown = 3
+    - Swap
+        - Startup cooldown = 3
+        - Can now target any player
+    - Critical Injury
+        - Delay 60 -> 120
+        - Target can now avoid concequences
 - More to be added...
 
 ## v1.3.3 Small Update

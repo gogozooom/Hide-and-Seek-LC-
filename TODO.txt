@@ -8,21 +8,29 @@ Bugs:
 
 	FIXED : Unable to spawn Turrets or Landmines when disabled in the config.
 
-	FIXED : 0 days left to meet the profit quota?
+	FIXED : 0 days left to meet the profit quota? (Properly this time)
 
 Features:
 
 	DONE : Make teleport and swap ability take a few seconds to teleport you.
+		- Targets can be anyone (Swap)
+		- Targets are teleported to where the ability was used (Swap)
 
 	DONE : Support for multiple seekers.
 	
+	REMEMBER! : Lever extra seeker picker support
+
 	DONE : Random item choices.
 
 	DONE : User name colors.
 
 	DONE : Ability config.
 
-	IMPLEMENTING : Give purpose to caught hiders.
+	DONE : Nerf Critical Injury
+		- abilityDelay 60 -> 120
+		- Target can now avoid concequences 
+
+	DONE : Give purpose to caught hiders.
 
 	Hiders escape back to ship (Hider Objective)
 		DESC: And the hiders having to escape back to the ship is a good idea,
@@ -31,7 +39,7 @@ Features:
 		(And now that I'm thinking about it, disable flipping the lever to leave early to give the other hiders a chance,
 		AND also make the ship automatically leave once all the hiders that are still alive are in the ship.)
 
-	Nerf Critical Injury
+
 	
 	Rework Round Rewards
 

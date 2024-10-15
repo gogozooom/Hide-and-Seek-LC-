@@ -4,9 +4,7 @@ using HideAndSeek.AudioScripts;
 using HideAndSeek.Patches;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.IO;
-using System.Xml.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using Debug = Debugger.Debug;
@@ -64,8 +62,8 @@ namespace HideAndSeek.AbilityScripts
                 _seekerAbility: false,
                 _serverEvent:SpawnWalkieServerEvent),
 
-            new AbilityBase(_abilityName:"Critical Injury", _abilityDescription:"Makes your nearest enemy slow down to a crawl at 10 hp! Usefull for chasing hiders, or running from the seeker!", _abilityCategory:"Offensive",
-                _abilityCost:200, _abilityDelay:60f,
+            new AbilityBase(_abilityName:"Critical Injury", _abilityDescription:"Haunts your nearest enemy, and if they don't react in time, their hp will be set to 1! Making them easily susceptible to death.", _abilityCategory:"Offensive",
+                _abilityCost:200, _abilityDelay:120f,
                 _serverEvent:CriticalInjuryServerEvent, _clientEvent:CriticalInjuryClientEvent),
 
             new AbilityBase(_abilityName:"Teleport", _abilityDescription:"Teleport yourself to a random location! Good for getting out of sticky situations! WARNING: This ability has a 3 second startup! This means it will take 3 seconds after using the ability for you to get teleported!", _abilityCategory:"Defensive",
@@ -74,7 +72,7 @@ namespace HideAndSeek.AbilityScripts
                 _requiresSeekerActive:false,
                 _seekerAbility:false),
 
-            new AbilityBase(_abilityName:"Swap", _abilityDescription:"Swap locations with a random hider friend! Good for getting a free hiding spot! I think... WARNING: This ability has a 3 second startup! This means it will take 3 seconds after using the ability for you to get teleported!", _abilityCategory:"Defensive",
+            new AbilityBase(_abilityName:"Swap", _abilityDescription:"Swap locations with a random player! Good for getting a free hiding spot! I think... WARNING: This ability has a 3 second startup! This means it will take 3 seconds after using the ability for you to get teleported!", _abilityCategory:"Defensive",
                 _serverEvent:SwapServerEvent, _clientEvent:SwapClientEvent,
                 _abilityCost:450, _abilityDelay:60f,
                 _seekerAbility:false),
@@ -163,14 +161,15 @@ namespace HideAndSeek.AbilityScripts
         {
             PlayerControllerB activatorPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
 
-            bool seekerUsedAbility = Plugin.seekers.Contains(activatorPlayer);
-
             ulong playerTarget = 10001;
 
             float closestPlayer = 10000f;
             foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
-                if (!player.isPlayerControlled || player.isPlayerDead || Plugin.seekers.Contains(player) == seekerUsedAbility) continue; // Invalid Target | 'Plugin.seekers.Contains(player) == seekerUsedAbility' Is of my kind
+                if (!player.isPlayerControlled
+                    || player.isPlayerDead
+                    ||  Plugin.seekers.Contains(player) == Plugin.seekers.Contains(activatorPlayer) // Invalid Target | 'Plugin.seekers.Contains(player) == seekerUsedAbility' Is of my kind
+                    || (Plugin.seekers.Contains(activatorPlayer) && Plugin.zombies.Contains(player))) continue; // Inavlid Target | Seeker dosen't target zombies!
 
                 float distance = (player.transform.position - activatorPlayer.transform.position).magnitude;
                 if (distance < closestPlayer)
@@ -190,13 +189,33 @@ namespace HideAndSeek.AbilityScripts
         }
         static void CriticalInjuryClientEvent(AbilityBase ability, ulong activatorId, string extraMessage)
         {
+            if (GameNetworkManager.Instance.localPlayerController.actualClientId == ulong.Parse(extraMessage)) // Is Target
+            {
+                GameNetworkManager.Instance.StartCoroutine(CriticalInjuryClientEventC(ability, activatorId));
+            }
+        }
+        static IEnumerator CriticalInjuryClientEventC(AbilityBase ability, ulong activatorId)
+        {
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
 
-            if (localPlayer.actualClientId == ulong.Parse(extraMessage))
-            {
-                localPlayer.DamagePlayer(localPlayer.health - 1); // Set them to 1 hp
+            Vector3 audioPos = AudioManager.PlaySound("DistantFireAlarm", position: localPlayer.transform.position + (Vector3.up * 2), spatialBend: 1, volume: 1.4f, maxDistance: 100, minDistance: 20).transform.position;
+            AudioManager.PlaySound("ScaryWarning", position: localPlayer.transform.position + (Vector3.up * 2));
 
-                HUDManager.Instance.DisplayTip("Hide And Seek", $"{ability.abilityName} got activated!", true);
+            yield return new WaitForSecondsRealtime(1);
+
+            HUDManager.Instance.DisplayTip("Unknown", $"Something is coming...", true);
+
+            yield return new WaitForSecondsRealtime(Random.Range(5f, 7f));
+
+            if ((audioPos - localPlayer.transform.position).magnitude <= 20)
+            {
+                AudioManager.PlaySound("HeightDamage");
+
+                localPlayer.DamagePlayer(localPlayer.health - 1); // Set them to 1 hp
+            }
+            else
+            {
+                HUDManager.Instance.DisplayTip("Unknown", $"Sounds like it left..");
             }
         }
         #endregion
@@ -480,13 +499,17 @@ namespace HideAndSeek.AbilityScripts
                     if (isUserSeeker)
                     {
                         info.otherFriendlies = Plugin.seekers;
+                        foreach (var zombie in Plugin.zombies)
+                        {
+                            info.otherFriendlies.Add(zombie);
+                        }
                     }
                     else
                     {
                         info.otherFriendlies = new();
                         foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                         {
-                            if (!Plugin.seekers.Contains(player))
+                            if (!Plugin.seekers.Contains(player) && !Plugin.zombies.Contains(player))
                             {
                                 info.otherFriendlies.Add(player);
                             }
@@ -569,7 +592,7 @@ namespace HideAndSeek.AbilityScripts
 
             foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
-                if (!Plugin.seekers.Contains(player) && player.isPlayerControlled && !player.isPlayerDead && player.actualClientId != activatorId)
+                if (player.isPlayerControlled && !player.isPlayerDead && player.actualClientId != activatorId)
                 {
                     playerList.Add(player.actualClientId);
                 }
@@ -577,7 +600,7 @@ namespace HideAndSeek.AbilityScripts
 
             if (playerList.Count > 0)
             {
-                int i = UnityEngine.Random.RandomRangeInt(0, playerList.Count - 1);
+                int i = UnityEngine.Random.RandomRangeInt(0, playerList.Count);
 
                 selectedPlayerId = playerList[i];
             }
@@ -617,16 +640,20 @@ namespace HideAndSeek.AbilityScripts
             AudioManager.PlaySound("BeamCharging", position: targetPlayer.transform.position, maxDistance: 50, spatialBend: 1, parent: targetPlayer.transform);
             AudioManager.PlaySound("Spark", position: targetPlayer.transform.position, maxDistance: 50, spatialBend: 1, parent: targetPlayer.transform);
 
+            Vector3 targetPosition = activatorPlayer.transform.position;
+
             if (targetPlayerId != activatorId) 
             {
                 if (localPlayer.actualClientId == activatorId)
                 {
                     // User
+                    targetPosition = targetPlayer.transform.position;
                     localPlayer.GetComponent<AbilityInstance>().DisplayTip($"Switching places with '{targetPlayer.playerUsername}'", false);
                 }
                 else if (localPlayer.actualClientId == targetPlayerId)
                 {
                     // Target
+                    targetPosition = activatorPlayer.transform.position;
                     localPlayer.GetComponent<AbilityInstance>().DisplayTip($"'{activatorPlayer.playerUsername}' is switching places with you!", true);
                 }
             }
@@ -643,15 +670,10 @@ namespace HideAndSeek.AbilityScripts
                 yield break;
             }
 
-            if (localPlayer.actualClientId == activatorId)
+            if (localPlayer.actualClientId == activatorId || localPlayer.actualClientId == targetPlayerId)
             {
                 // User
-                localPlayer.TeleportPlayer(targetPlayer.transform.position);
-            }
-            else if (localPlayer.actualClientId == targetPlayerId)
-            {
-                // Target
-                localPlayer.TeleportPlayer(activatorPlayer.transform.position);
+                localPlayer.TeleportPlayer(targetPosition);
             }
 
             activatorPlayer.beamOutParticle.Play();
@@ -686,7 +708,7 @@ namespace HideAndSeek.AbilityScripts
             List<PlayerControllerB> targets = new List<PlayerControllerB>();
             foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
-                if (player.isPlayerControlled && !player.isPlayerDead && Plugin.seekers.Contains(player) != Plugin.seekers.Contains(activatorPlayer))
+                if (player.isPlayerControlled && !player.isPlayerDead && Plugin.seekers.Contains(player) != Plugin.seekers.Contains(activatorPlayer) && !Plugin.zombies.Contains(player))
                 {
                     Debug.LogWarning("Adding player: " + player + " To targets!");
                     targets.Add(player);

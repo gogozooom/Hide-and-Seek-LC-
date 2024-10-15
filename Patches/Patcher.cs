@@ -4,17 +4,273 @@ using HarmonyLib;
 using HideAndSeek.AbilityScripts;
 using HideAndSeek.AbilityScripts.Extra;
 using HideAndSeek.AudioScripts;
-using OdinSerializer.Utilities;
+using LCVR.Player;
+using LethalNetworkAPI;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Rendering;
 using Debug = Debugger.Debug;
 
 namespace HideAndSeek.Patches
 {
+    public static class PatchesManager
+    {
+        public static System.Action<ulong> playerRevived;
+        public static void ReviveAfterWaitAndCallRpc(PlayerControllerB player, float wait = 5)
+        {
+            if (!StartOfRound.Instance.shipHasLanded) { Debug.LogError("Can't revive someone while the ship is leaving!"); return; }
+            GameNetworkManager.Instance.StartCoroutine(ReviveAfterWaitAndCallRpcC(player, wait));
+        }
+        static IEnumerator ReviveAfterWaitAndCallRpcC(PlayerControllerB player, float wait = 5)
+        {
+            yield return new WaitForSeconds(wait);
+
+            RevivePlayerAndCallRpc(player);
+        }
+        public static void RevivePlayerAndCallRpc(PlayerControllerB player)
+        {
+            NetworkHandler.Instance.EventSendRpc(".revivePlayerLocal", new(__ulong: player.actualClientId));
+        }
+        static void ReviveVRPlayerLocal(PlayerControllerB player)
+        {
+            //SpectatorPlayerPatches.isSpectating = false;
+            PlayerControllerB localPlayerController = StartOfRound.Instance.localPlayerController;
+            if (localPlayerController.isPlayerDead != player)
+            {
+                return;
+            }
+            VRSession.Instance.VolumeManager.Saturation = 0f;
+            VRSession.Instance.VolumeManager.VignetteIntensity = 0f;
+            localPlayerController.thisPlayerModelArms.enabled = true;
+            localPlayerController.isPlayerControlled = false;
+            localPlayerController.takingFallDamage = false;
+            //localPlayerController.isCameraDisabled = true;
+            VRSession.Instance.LocalPlayer.LeftHandInteractor.enabled = true;
+            VRSession.Instance.LocalPlayer.RightHandInteractor.enabled = true;
+            HangarShipDoor hangarShipDoor = Object.FindObjectOfType<HangarShipDoor>();
+            Transform transform = hangarShipDoor.transform.Find("HangarDoorLeft (1)");
+            Transform transform2 = hangarShipDoor.transform.Find("HangarDoorRight (1)");
+            Component component = hangarShipDoor.transform.Find("Cube");
+            transform.GetComponent<BoxCollider>().isTrigger = false;
+            transform2.GetComponent<BoxCollider>().isTrigger = false;
+            component.GetComponent<BoxCollider>().isTrigger = false;
+            localPlayerController.GetComponent<CharacterController>().excludeLayers = 0;
+            VRSession.Instance.HUD.ToggleSpectatorLight(new bool?(false));
+        }
+        public static IEnumerator GiveZombieItems(PlayerControllerB player)
+        {
+            if (!string.IsNullOrEmpty(Config.zombieItemSlot1.Value))
+            {
+                yield return RoundManagerPatch.SpawnNewItemCoroutine(Config.zombieItemSlot1.Value, player);
+            }
+            if (!string.IsNullOrEmpty(Config.zombieItemSlot2.Value))
+            {
+                yield return RoundManagerPatch.SpawnNewItemCoroutine(Config.zombieItemSlot2.Value, player);
+            }
+            if (!string.IsNullOrEmpty(Config.zombieItemSlot3.Value))
+            {
+                yield return RoundManagerPatch.SpawnNewItemCoroutine(Config.zombieItemSlot3.Value, player);
+            }
+            if (!string.IsNullOrEmpty(Config.zombieItemSlot4.Value))
+            {
+                yield return RoundManagerPatch.SpawnNewItemCoroutine(Config.zombieItemSlot4.Value, player);
+            }
+        }
+        static IEnumerator FixTip()
+        {
+            yield return new WaitForSeconds(2);
+            HUDManager.Instance.tipsPanelAnimator.SetTrigger("TriggerHint");
+        }
+        public static void RevivePlayerLocal(PlayerControllerB player)
+        {
+            if (player == null)
+            {
+                Debug.LogError($"RevivePlayer({player}) Tried to revive null player!");
+                return;
+            }
+
+            StartOfRound _this = StartOfRound.Instance;
+
+            if (_this == null)
+            {
+                Debug.LogError($"RevivePlayer({player}) No start of round instance!");
+                return;
+            }
+
+            if (_this.shipIsLeaving)
+            {
+                Debug.LogError($"RevivePlayer({player}) Tried to revive, but has already left!");
+                return;
+            }
+
+
+            GameObject canvas = null;
+
+            if (GameNetworkManager.Instance.localPlayerController == player)
+            {
+                canvas = GameObject.Find("Systems/UI/Canvas/IngamePlayerHUD");
+                canvas.SetActive(false);
+            }
+
+            Debug.Log("Reviving players A");
+
+            try
+            {
+                ReviveVRPlayerLocal(player);
+            }
+            catch (System.Exception)
+            {
+                Debug.LogWarning("ReviveVRPlayerLocal Ran into an error!");
+                //throw;
+            }
+
+            player.ResetPlayerBloodObjects(player.isPlayerDead);
+            if (player.isPlayerDead || player.isPlayerControlled)
+            {
+                player.isClimbingLadder = false;
+                player.clampLooking = false;
+                player.inVehicleAnimation = false;
+                player.disableMoveInput = false;
+                player.ResetZAndXRotation();
+                player.thisController.enabled = true;
+                player.health = 100;
+                player.hasBeenCriticallyInjured = false;
+                player.disableLookInput = false;
+                player.disableInteract = false;
+                Debug.Log("Reviving players B");
+                if (player.isPlayerDead)
+                {
+                    player.isPlayerDead = false;
+                    player.isPlayerControlled = true;
+                    player.isInElevator = true;
+                    player.isInHangarShipRoom = true;
+                    player.isInsideFactory = false;
+                    player.parentedToElevatorLastFrame = false;
+                    player.overrideGameOverSpectatePivot = null;
+                    _this.SetPlayerObjectExtrapolate(false);
+                    player.TeleportPlayer(_this.playerSpawnPositions[0].position, false, 0f, false, true); // TELEPORT HERE!!!
+                    player.setPositionOfDeadPlayer = false;
+                    player.DisablePlayerModel(player.gameObject, true, true);
+                    player.helmetLight.enabled = false;
+                    Debug.Log("Reviving players C");
+                    player.Crouch(false);
+                    player.criticallyInjured = false;
+                    if (player.playerBodyAnimator != null)
+                    {
+                        player.playerBodyAnimator.SetBool("Limp", false);
+                    }
+                    player.bleedingHeavily = false;
+                    player.activatingItem = false;
+                    player.twoHanded = false;
+                    player.inShockingMinigame = false;
+                    player.inSpecialInteractAnimation = false;
+                    player.freeRotationInInteractAnimation = false;
+                    player.disableSyncInAnimation = false;
+                    player.inAnimationWithEnemy = null;
+                    player.holdingWalkieTalkie = false;
+                    player.speakingToWalkieTalkie = false;
+                    Debug.Log("Reviving players D");
+                    player.isSinking = false;
+                    player.isUnderwater = false;
+                    player.sinkingValue = 0f;
+                    player.statusEffectAudio.Stop();
+                    player.DisableJetpackControlsLocally();
+                    player.health = 100;
+                    Debug.Log("Reviving players E");
+                    player.mapRadarDotAnimator.SetBool("dead", false);
+                    player.externalForceAutoFade = Vector3.zero;
+                    if (player.IsOwner)
+                    {
+                        HUDManager.Instance.gasHelmetAnimator.SetBool("gasEmitting", false);
+                        player.hasBegunSpectating = false;
+                        HUDManager.Instance.RemoveSpectateUI();
+                        HUDManager.Instance.gameOverAnimator.SetTrigger("revive");
+                        player.hinderedMultiplier = 1f;
+                        player.isMovementHindered = 0;
+                        player.sourcesCausingSinking = 0;
+                        Debug.Log("Reviving players E2");
+                        player.reverbPreset = _this.shipReverb;
+                    }
+                }
+                Debug.Log("Reviving players F");
+                SoundManager.Instance.earsRingingTimer = 0f;
+                player.voiceMuffledByEnemy = false;
+                SoundManager.Instance.playerVoicePitchTargets[(int)player.actualClientId] = 1f;
+                SoundManager.Instance.SetPlayerPitch(1f, (int)player.actualClientId);
+                if (player.currentVoiceChatIngameSettings == null)
+                {
+                    _this.RefreshPlayerVoicePlaybackObjects();
+                }
+                if (player.currentVoiceChatIngameSettings != null)
+                {
+                    if (player.currentVoiceChatIngameSettings.voiceAudio == null)
+                    {
+                        player.currentVoiceChatIngameSettings.InitializeComponents();
+                    }
+                    if (player.currentVoiceChatIngameSettings.voiceAudio == null)
+                    {
+                        return;
+                    }
+                    player.currentVoiceChatIngameSettings.voiceAudio.GetComponent<OccludeAudio>().overridingLowPass = false;
+                }
+                Debug.Log("Reviving players G");
+            }
+
+            PlayerControllerB playerControllerB = GameNetworkManager.Instance.localPlayerController;
+            playerControllerB.bleedingHeavily = false;
+            playerControllerB.criticallyInjured = false;
+            playerControllerB.playerBodyAnimator.SetBool("Limp", false);
+            playerControllerB.health = 100;
+            HUDManager.Instance.UpdateHealthUI(100, false);
+            playerControllerB.spectatedPlayerScript = null;
+            HUDManager.Instance.audioListenerLowPass.enabled = false;
+            Debug.Log($"Reviving players H {player.deadBody}");
+            _this.SetSpectateCameraToGameOverMode(false, playerControllerB);
+
+            _this.livingPlayers += 1;
+            _this.UpdatePlayerVoiceEffects();
+
+            if (canvas)
+            {
+                canvas.SetActive(true);
+                GameObject.Find("Systems/UI/Canvas/DeathScreen").SetActive(false);
+                _this.StartCoroutine(FixTip());
+            }
+
+            if (!Plugin.zombies.Contains(player))
+            {
+                Plugin.zombies.Add(player);
+            }
+            if (GameNetworkManager.Instance.localPlayerController == player)
+            {
+                player.thisPlayerModelArms.enabled = true;
+
+                switch (Config.zombieSpawnLocation.Value)
+                {
+                    case "Entrance":
+                        EntranceTeleport entranceScript = (EntranceTeleport)AccessTools.Method(typeof(RoundManager), "FindMainEntranceScript").Invoke(null, [false]);
+
+                        entranceScript.TeleportPlayer();
+                        break;
+                    case "Inside":
+                        EntranceTeleport insideScript = (EntranceTeleport)AccessTools.Method(typeof(RoundManager), "FindMainEntranceScript").Invoke(null, [true]);
+
+                        insideScript.TeleportPlayer();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (GameNetworkManager.Instance.isHostingGame)
+            {
+                Debug.LogError("Giving player items!");
+                _this.StartCoroutine(GiveZombieItems(player));
+            }
+            player.usernameBillboardText.color = Config.zombieNameColor.Value;
+            playerRevived?.Invoke(player.actualClientId);
+        }
+    }
     [HarmonyPatch(typeof(RoundManager))]
     public class RoundManagerPatch
     {
@@ -45,6 +301,7 @@ namespace HideAndSeek.Patches
                 lastSeekerId = 10001;
                 pastSeekers.Clear();
                 itemSpawnPositions.Clear();
+                revivedPlayers.Clear();
                 Plugin.seekers.Clear();
                 Plugin.zombies.Clear();
             }
@@ -129,6 +386,7 @@ namespace HideAndSeek.Patches
             levelLoading = true;
 
             instance = GameObject.FindFirstObjectByType<RoundManager>();
+            revivedPlayers.Clear();
             Plugin.seekers.Clear();
             Plugin.zombies.Clear();
             playersTeleported = 0;
@@ -627,22 +885,31 @@ namespace HideAndSeek.Patches
         }
         static bool rewardedPlayersD = false;
         static bool seekersWon = false;
+        static List<PlayerControllerB> revivedPlayers = new();
         public static void PlayerDied(string reason = "", bool checking = false)
         {
             int aliveHidersCount = 0;
             int aliveSeekersCount = 0;
+            int aliveZombieCount = 0;
 
             foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
-                if (Plugin.seekers.Contains(player) && !player.isPlayerDead)
+                if (!player.isPlayerDead)
                 {
-                    // Alive Seeker
-                    aliveSeekersCount++;
-                }
-                else if (!player.isPlayerDead)
-                {
-                    // Alive Hider
-                    aliveHidersCount++;
+                    if (Plugin.zombies.Contains(player))
+                    {
+                        // Alive Zombie
+                        aliveZombieCount++;
+                    } else if (Plugin.seekers.Contains(player))
+                    {
+                        // Alive Seeker
+                        aliveSeekersCount++;
+                    }
+                    else
+                    {
+                        // Alive Hider
+                        aliveHidersCount++;
+                    }
                 }
             }
 
@@ -670,8 +937,11 @@ namespace HideAndSeek.Patches
                     NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Seeker Died; Hiders Win!", _bool = true });
                 }
                 Debug.LogMessage("_________ SEEKER DIED! _________");
-                lever.EndGame();
-                lever.LeverAnimation();
+                if (StartOfRound.Instance.shipHasLanded)
+                {
+                    lever.EndGame();
+                    lever.LeverAnimation();
+                }
 
                 return;
             }
@@ -714,7 +984,24 @@ namespace HideAndSeek.Patches
                     {
                         NetworkHandler.Instance.EventSendRpc(".tip", new(__string: $"{aliveHidersCount} Hiders Remain..."));
                     }
+                    if (Config.deadHidersRespawn.Value && aliveHidersCount > 0)
+                    {
+                        foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+                        {
+                            if (player.isPlayerDead && !Plugin.zombies.Contains(player) && !Plugin.seekers.Contains(player))
+                            {
+                                if (revivedPlayers.Contains(player) && Config.deadZombiesRespawn.Value)
+                                {
+                                    continue;
+                                }
 
+                                Plugin.zombies.Add(player);
+                                revivedPlayers.Add(player);
+                                PatchesManager.ReviveAfterWaitAndCallRpc(player, Config.zombieSpawnDelay.Value);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -782,7 +1069,6 @@ namespace HideAndSeek.Patches
                     if (!string.IsNullOrEmpty(Config.seekerItemSlot3.Value))
                     {
                         yield return SpawnNewItemCoroutine(Config.seekerItemSlot3.Value, player);
-
                     }
                     if (!string.IsNullOrEmpty(Config.seekerItemSlot4.Value))
                     {
@@ -815,7 +1101,7 @@ namespace HideAndSeek.Patches
         {
             RoundManager.Instance.StartCoroutine(SpawnNewItemCoroutine(itemName, player, forceSamePosition));
         }
-        static IEnumerator SpawnNewItemCoroutine(string itemName, PlayerControllerB player, bool forceSamePosition = false)
+        public static IEnumerator SpawnNewItemCoroutine(string itemName, PlayerControllerB player, bool forceSamePosition = false)
         {
             Debug.LogMessage("SpawnNewItem()!");
             Item[] items = Resources.FindObjectsOfTypeAll<Item>();
@@ -3065,6 +3351,7 @@ namespace HideAndSeek.Patches
         [HarmonyPrefix]
         static bool DamagePlayerPatch(CauseOfDeath causeOfDeath = CauseOfDeath.Unknown)
         {
+            GameObject.Find("Systems/UI/Canvas/DeathScreen").SetActive(false);
             Debug.LogMessage($"Damaged recived: {causeOfDeath}");
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
             if (Plugin.seekers.Contains(localPlayer) || Plugin.zombies.Contains(localPlayer)) // Is seeker
@@ -3082,6 +3369,26 @@ namespace HideAndSeek.Patches
                     //Debug.LogMessage("You can't die to your own weapon!");
                     return false;
                 }
+            }
+            return true;
+        }
+        [HarmonyPatch("DamagePlayerFromOtherClientClientRpc")]
+        [HarmonyPrefix]
+        static bool DamagePlayerFromOtherClientClientRpcPatch(ref int damageAmount, ref Vector3 hitDirection, ref int playerWhoHit, ref int newHealthAmount, ref PlayerControllerB __instance)
+        {
+            PlayerControllerB localPlayer = __instance;
+            PlayerControllerB attacker = RoundManagerPatch.GetPlayerWithClientId((ulong)playerWhoHit);
+
+            Debug.LogError($"Hit Damage Recived! local '{Plugin.zombies.Contains(localPlayer) || Plugin.seekers.Contains(localPlayer)}' attacker '{Plugin.zombies.Contains(attacker) || Plugin.seekers.Contains(attacker)}'");
+            if((Plugin.zombies.Contains(localPlayer) || Plugin.seekers.Contains(localPlayer)) && (Plugin.zombies.Contains(attacker) || Plugin.seekers.Contains(attacker)))
+            {
+                return false;
+            }
+
+            if(Plugin.zombies.Contains(attacker) || Plugin.seekers.Contains(attacker))
+            {
+                damageAmount = 90;
+                newHealthAmount = localPlayer.health - damageAmount;
             }
             return true;
         }
@@ -3184,7 +3491,7 @@ namespace HideAndSeek.Patches
 
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
 
-            if(!Plugin.seekers.Contains(localPlayer) && !Plugin.zombies.Contains(localPlayer) && RoundManagerPatch.playersTeleported >= players.Count && Config.lockHidersInside.Value)
+            if(!Plugin.seekers.Contains(localPlayer) && !Plugin.zombies.Contains(localPlayer) && !Plugin.zombies.Contains(localPlayer) && RoundManagerPatch.playersTeleported >= players.Count && Config.lockHidersInside.Value)
             {
                 HUDManager.Instance.DisplayTip("???", "The entrance appears to be blocked.");
                 return false;
@@ -3216,6 +3523,13 @@ namespace HideAndSeek.Patches
         {
             StartOfRound.Instance.companyBuyingRate = 1f;
         }
+        [HarmonyPatch("UpdateProfitQuotaCurrentTime")]
+        [HarmonyPrefix]
+        public static bool UpdateProfitQuotaCurrentTimePatch()
+        {
+            HUDManagerPatch.UpdateRoundDisplay();
+            return false;
+        }
     }
 
     [HarmonyPatch(typeof(HUDManager))]
@@ -3229,10 +3543,17 @@ namespace HideAndSeek.Patches
         {
             CurrentRound++;
 
+            UpdateRoundDisplay();
+        }
+
+        public static void UpdateRoundDisplay()
+        {
             HUDManager.Instance.profitQuotaDaysLeftText.text = $"Round {CurrentRound}";
             HUDManager.Instance.profitQuotaDaysLeftText2.text = $"Round {CurrentRound}";
             StartOfRound.Instance.deadlineMonitorText.text = $"Round:\n {CurrentRound}";
             TimeOfDay.Instance.quotaVariables.deadlineDaysAmount = 3;
+            TimeOfDay.Instance.profitQuota = 200;
+            TimeOfDay.Instance.quotaFulfilled = 0;
             TimeOfDay.Instance.timeUntilDeadline = 3;
             TimeOfDay.Instance.daysUntilDeadline = 3;
             TimeOfDay.Instance.hoursUntilDeadline = 3;
@@ -3278,6 +3599,38 @@ namespace HideAndSeek.Patches
         static bool FirePlayersPatch()
         {
             Debug.LogError("Tried to fire players! Canceling");
+            return false;
+        }
+        [HarmonyPatch("SetTimeAndPlanetToSavedSettings")]
+        [HarmonyPrefix]
+        static bool SetTimeAndPlanetToSavedSettingsPatch(ref StartOfRound __instance)
+        {
+            string currentSaveFileName = GameNetworkManager.Instance.currentSaveFileName;
+            __instance.ChangeLevel(ES3.Load("CurrentPlanetID", currentSaveFileName, __instance.defaultPlanet));
+            __instance.ChangePlanet();
+
+            if (__instance.isChallengeFile)
+            {
+                TimeOfDay.Instance.totalTime = TimeOfDay.Instance.lengthOfHours * (float)TimeOfDay.Instance.numberOfHours;
+                TimeOfDay.Instance.timeUntilDeadline = TimeOfDay.Instance.totalTime;
+                TimeOfDay.Instance.profitQuota = 200;
+            }
+            else
+            {
+                HUDManagerPatch.UpdateRoundDisplay();
+            }
+            TimeOfDay.Instance.UpdateProfitQuotaCurrentTime();
+            __instance.LoadPlanetsMoldSpreadData();
+            __instance.SetPlanetsWeather(0);
+            Object.FindObjectOfType<Terminal>().SetItemSales();
+            if (__instance.gameStats.daysSpent == 0 && !__instance.isChallengeFile)
+            {
+                //__instance.PlayFirstDayShipAnimation(true); No
+            }
+            if (TimeOfDay.Instance.timeUntilDeadline > 0f && TimeOfDay.Instance.daysUntilDeadline <= 0 && TimeOfDay.Instance.timesFulfilledQuota <= 0)
+            {
+                //__instance.StartCoroutine(__instance.playDaysLeftAlertSFXDelayed()); No
+            }
             return false;
         }
     }
