@@ -43,32 +43,10 @@ namespace HideAndSeek.AbilityScripts
             if (!isOwner) return;
 
             Debug.LogWarning("Action Binding...");
-            sellAction.AddBinding(Config.sellKeyBind.Value);
+            sellAction = InputConfigs.GetInputClass().SellKey;
             sellAction.performed += SellInputPressed;
             sellAction.canceled += SellInputCanceled;
             sellAction.Enable();
-
-            // Move Input
-
-            InputAction moveAction = new("moveAction", InputActionType.Button, "<Keyboard>/w");
-            moveAction.performed += MoveInputPressed;
-            moveAction.canceled += MoveInputReleased;
-            moveAction.Enable();
-
-            moveAction = new("moveAction", InputActionType.Button, "<Keyboard>/a");
-            moveAction.performed += MoveInputPressed;
-            moveAction.canceled += MoveInputReleased;
-            moveAction.Enable();
-
-            moveAction = new("moveAction", InputActionType.Button, "<Keyboard>/s");
-            moveAction.performed += MoveInputPressed;
-            moveAction.canceled += MoveInputReleased;
-            moveAction.Enable();
-
-            moveAction = new("moveAction", InputActionType.Button, "<Keyboard>/d");
-            moveAction.performed += MoveInputPressed;
-            moveAction.canceled += MoveInputReleased;
-            moveAction.Enable();
 
             // Create Radial UI
             if (abilityRadialMenuPrefab == null)
@@ -109,31 +87,29 @@ namespace HideAndSeek.AbilityScripts
                 ResetAbilityUse();
                 roundStarted = false;
             }
-        }
+            
+            Vector2 movementInput = IngamePlayerSettings.Instance.playerInput.actions.FindAction("Move", false).ReadValue<Vector2>();
 
-        int moving = 0;
-        void MoveInputPressed(InputAction.CallbackContext context = new())
-        {
-            moving++;
-            if (sellingScrap)
+            if (movementInput.magnitude > 0.2f)
             {
-                SellMoveCanceled();
+                if (sellingScrap)
+                {
+                    SellMoveCanceled();
+                }
             }
-        }
-        void MoveInputReleased(InputAction.CallbackContext context = new())
-        {
-            moving--;
         }
 
         // Money/Sell Management
         bool sellingScrap = false;
         void SellInputPressed(InputAction.CallbackContext context = new())
         {
+            Vector2 movementInput = IngamePlayerSettings.Instance.playerInput.actions.FindAction("Move", false).ReadValue<Vector2>();
+
             GrabbableObject item = attachedPlayer.ItemSlots[attachedPlayer.currentItemSlot];
             if (!item) return;
             if (item.scrapValue == 0) return;
 
-            if (moving > 0)
+            if (movementInput.magnitude > 0.2f)
             {
                 SellMoveCanceled();
                 return;

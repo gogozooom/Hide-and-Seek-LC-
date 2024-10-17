@@ -1,6 +1,9 @@
 ﻿using BepInEx.Configuration;
 using Debugger;
+using LethalCompanyInputUtils.Api;
+using LethalCompanyInputUtils.BindingPathEnums;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace HideAndSeek
 {
@@ -12,10 +15,13 @@ namespace HideAndSeek
         // Gamemode.Abilities
         public static ConfigEntry<bool> abilitiesEnabled;
         public static ConfigEntry<bool> creditsResetOnNewRound;
-        public static ConfigEntry<string> sellKeyBind;
-        public static ConfigEntry<string> abilityMenuKeyBind;
         public static ConfigEntry<int> deadBodySellValue;
 
+        // Gamemode.Objective
+        public static ConfigEntry<string> objective;
+        public static ConfigEntry<float> timeObjectiveAvailable;
+        public static ConfigEntry<Color> objectiveNameColor;
+        public static ConfigEntry<bool> lockShipLever;
 
         // Entities.Daytime
         public static ConfigEntry<bool> disableAllDaytimeEntities;
@@ -109,7 +115,7 @@ namespace HideAndSeek
 
             #region Gamemode.Abilities
             abilitiesEnabled = cfg.Bind(
-                "0:Gamemode.Abilities", 
+                "0:Gamemode.Abilities",
                 "Abilities Enabled",
                 true,
                 "Enables Abilities! Hold 'c' to sell scrap and press 't' to open the abilities menu to spend your credits on."
@@ -120,18 +126,6 @@ namespace HideAndSeek
                 false,
                 "Makes everyone's credits go back to 0 when a new round starts"
             );
-            abilityMenuKeyBind = cfg.Bind(
-                "0:Gamemode.Abilities",
-                "Ability Menu keybind",
-                "<Keyboard>/t",
-                "Press this to open a menu with a wide range of fun abilities!"
-            );
-            sellKeyBind = cfg.Bind(
-                "0:Gamemode.Abilities",
-                "Sell keybind",
-                "<Keyboard>/c",
-                "Hold this for 3 seconds, and you got your self some cash!"
-            );
             deadBodySellValue = cfg.Bind(
                 "0:Gamemode.Abilities",
                 "Dead Body Value",
@@ -139,6 +133,33 @@ namespace HideAndSeek
                 "How much a dead body is worth when selling"
             );
 
+            #endregion
+
+            #region Gamemode.Objective
+            objective = cfg.Bind(
+                "0:Gamemode.Objective",
+                "Hider Objective",
+                "Ship",
+                "'None' There will be no objective, 'Ship' The interior exits will be unlocked and the hiders have to get back to the ship, (More may come?)"
+            );
+            timeObjectiveAvailable = cfg.Bind(
+                "0:Gamemode.Objective",
+                "Time Objective Available",
+                900f,
+                "The time the clock would be when the objective comes into play. 900 = 9:00 PM, 960 = 10:00 PM, +60 = +1 hour (Can't be lower than when the seeker is released!)"
+            );
+            objectiveNameColor = cfg.Bind(
+                "2:Players.Hider",
+                "Objective Reached Name Color",
+                new Color(1, 0, 1),
+                "The color the player's name tag will be when they have succsessfully reached the objective."
+            );
+            lockShipLever = cfg.Bind(
+                "2:Players.Seeker",
+                "Lock Ship Lever",
+                true,
+                "Will not allow the ship lever to be pulled during a round (Does not apply to the host or the seekers)"
+            );
             #endregion
 
             #region Entities.Daytime
@@ -352,26 +373,20 @@ namespace HideAndSeek
             numberOfSeekers = cfg.Bind(
                 "2:Players.Seeker",
                 "Number of Seekers",
-                "20%",
+                "25%",
                 "'1'-[connected players] (Example '3') OR '1%'-'100%' (Example 25%): No matter what this is set to, (Example '0' or '100%') there will ALWAYS be at least 1 hider and 1 seeker (Unless there is only one connected player, then they would just be seeker)"
             );
             extraSeekerChooseBehavior = cfg.Bind(
                 "2:Players.Seeker",
                 "Extra Seeker Choose Behavior",
-                "Turns",
-                "'None' (Just a random range generator), 'Turns' (Will not pick someone that was already seeker, resets when everyone got a chance), 'Lever' (!WIP! Players nearest to the lever will be the seeker)"
+                "Closest",
+                "'None' (Just a random range generator), 'Turns' (Will not pick someone that was already seeker, resets when everyone got a chance), 'Closest' (Players nearest to the first seeker will be seeker)"
             );
             isSeekerImmune = cfg.Bind(
                 "2:Players.Seeker",
                 "Is Seeker Immune",
                 false,
                 "Determines if the seeker could be harmed or not (not recommended while abilites are enabled)"
-            );
-            hostilesIgnoreSeeker = cfg.Bind(
-                "2:Players.Seeker",
-                "Is Seeker Ignored",
-                true,
-                "(To be implemented!) Determines if the seeker should be ignored by hostiles or not."
             );
             shotgunInfiniteAmmo = cfg.Bind(
                 "2:Players.Seeker",
@@ -561,6 +576,53 @@ namespace HideAndSeek
             );
 
             #endregion
+        }
+    }
+    public class InputConfigs : LcInputActions
+    {
+        static InputConfigs instance;
+
+        [InputAction(KeyboardControl.Escape, Name = "Escape", GamepadControl = GamepadControl.Start)]
+        public InputAction Escape { get; set; }
+
+        [InputAction(KeyboardControl.T, Name = "Ability Menu", GamepadControl = GamepadControl.Select)]
+        public InputAction AbilityMenuKey { get; set; }
+
+        [InputAction(KeyboardControl.C, Name = "Sell Scrap", GamepadControl = GamepadControl.RightShoulder)]
+        public InputAction SellKey { get; set; }
+
+        [InputAction(MouseControl.Scroll, Name = "Scroll")]
+        public InputAction ScrollAbilitiesInput { get; set; }
+
+        [InputAction(MouseControl.MiddleButton, Name = "Favorite Ability")]
+        public InputAction FavoriteKey { get; set; }
+
+        [InputAction(KeyboardControl.LeftArrow, Name = "Previous Ability")]
+        public InputAction BackKey { get; set; }
+
+        [InputAction(KeyboardControl.RightArrow, Name = "Next Ability")]
+        public InputAction ForwardKey { get; set; }
+
+        [InputAction(MouseControl.None, Name = "Scroll Categories", GamepadControl = GamepadControl.Dpad)]
+        public InputAction ScrollCategoriesInput { get; set; }
+
+        [InputAction(KeyboardControl.UpArrow, Name = "Change Category Up")]
+        public InputAction UpKey { get; set; }
+
+        [InputAction(KeyboardControl.DownArrow, Name = "Change Category Down")]
+        public InputAction DownKey { get; set; }
+
+        [InputAction(KeyboardControl.Enter, Name = "Activate Ability", GamepadControl = GamepadControl.RightTrigger)]
+        public InputAction ActivateKey { get; set; }
+
+        public static InputConfigs GetInputClass()
+        {
+            if (instance == null)
+            {
+                instance = new InputConfigs();
+            }
+
+            return instance;
         }
     }
 }

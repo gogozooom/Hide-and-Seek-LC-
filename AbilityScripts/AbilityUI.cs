@@ -2,6 +2,8 @@
 using HarmonyLib;
 using HideAndSeek.AudioScripts;
 using HideAndSeek.Patches;
+using LethalCompanyInputUtils;
+using LethalCompanyInputUtils.Api;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Composites;
 using UnityEngine.UI;
 using Debug = Debugger.Debug;
 
@@ -37,7 +40,8 @@ namespace HideAndSeek.AbilityScripts
 
         // Ability Lists
         List<string> selectedAbilities;
-        int currentIndex = 0;
+        int currentAbilityIndex = 0;
+        int currentCategoryIndex = 0;
 
         List<string> allAbilities;
         Dictionary<string, List<string>> abilityCategories;
@@ -172,13 +176,13 @@ namespace HideAndSeek.AbilityScripts
             {
                 menuControlTip = Instantiate(controlTip);
                 menuControlTip.transform.parent = controlTip.transform.parent;
-                menuControlTip.text = $"Ability Menu: [{Config.abilityMenuKeyBind.Value.Split(">")[1].Replace("/", "").ToUpper()}]";
+                menuControlTip.text = $"Ability Menu: [{InputConfigs.GetInputClass().AbilityMenuKey.GetBindingDisplayString()}]";
                 menuControlTip.transform.localScale = Vector3.one;
                 menuControlTip.transform.position = controlTip.transform.position + (Vector3.down * (controlTip.transform.position.y - otherControlTip.transform.position.y) * 4);
 
                 sellControlTip = Instantiate(controlTip);
                 sellControlTip.transform.parent = controlTip.transform.parent;
-                sellControlTip.text = $"Sell Scrap: [{Config.sellKeyBind.Value.Split(">")[1].Replace("/", "").ToUpper()}]";
+                sellControlTip.text = $"Sell Scrap: [{InputConfigs.GetInputClass().SellKey.GetBindingDisplayString()}]";
                 sellControlTip.transform.localScale = Vector3.one;
                 sellControlTip.transform.position = controlTip.transform.position + (Vector3.down * (controlTip.transform.position.y - otherControlTip.transform.position.y) * 5);
             }
@@ -187,32 +191,52 @@ namespace HideAndSeek.AbilityScripts
 
             #region Inputs
 
-            InputAction abilityMenu = new("Menu", InputActionType.Button, Config.abilityMenuKeyBind.Value);
+            InputAction activateInput = InputConfigs.GetInputClass().ActivateKey;
+            activateInput.performed += ActivateInput;
+            activateInput.Enable();
+            inputs.Add(activateInput);
+
+            InputAction categoryInput = InputConfigs.GetInputClass().ScrollCategoriesInput;
+            categoryInput.performed += ScrollCategoriesInput;
+            categoryInput.Enable();
+            inputs.Add(categoryInput);
+
+            InputAction categoryInputUp = InputConfigs.GetInputClass().UpKey;
+            categoryInputUp.performed += UpInput;
+            categoryInputUp.Enable();
+            inputs.Add(categoryInputUp);
+
+            InputAction categoryInputDown = InputConfigs.GetInputClass().DownKey;
+            categoryInputDown.performed += DownInput;
+            categoryInputDown.Enable();
+            inputs.Add(categoryInputDown);
+
+            InputAction abilityMenu = InputConfigs.GetInputClass().AbilityMenuKey;
             abilityMenu.performed += ToggleAbilityUIInput;
             abilityMenu.Enable();
             inputs.Add(abilityMenu);
 
-            InputAction exit = new("Exit", InputActionType.Button, "<Keyboard>/escape");
+            InputAction exit = InputConfigs.GetInputClass().Escape;
             exit.performed += DisableAbilityUIInput;
             exit.Enable();
             inputs.Add(exit);
 
-            InputAction scroll = new InputAction("Next", InputActionType.Value, "<Mouse>/scroll/y");
-            scroll.performed += ScrollInput;
-            scroll.Enable();
-            inputs.Add(scroll);
+            InputAction scrollInput = InputConfigs.GetInputClass().ScrollAbilitiesInput;
+            scrollInput.performed += ScrollInput;
+            scrollInput.Enable();
+            inputs.Add(scrollInput);
 
-            InputAction clickLeft = new InputAction("Left", InputActionType.Value, "<Keyboard>/leftArrow");
+            InputAction clickLeft = InputConfigs.GetInputClass().BackKey;
             clickLeft.performed += LeftInput;
             clickLeft.Enable();
             inputs.Add(clickLeft);
 
-            InputAction clickRight = new InputAction("Left", InputActionType.Value, "<Keyboard>/rightArrow");
+            InputAction clickRight = InputConfigs.GetInputClass().ForwardKey;
             clickRight.performed += RightInput;
             clickRight.Enable();
             inputs.Add(clickRight);
 
-            InputAction middleClick = new InputAction("Favorite", InputActionType.Button, "<Mouse>/middleButton");
+            InputAction middleClick = InputConfigs.GetInputClass().FavoriteKey;
             middleClick.performed += FavoriteInput;
             middleClick.Enable();
             inputs.Add(middleClick);
@@ -225,7 +249,19 @@ namespace HideAndSeek.AbilityScripts
             else
             {
                 buyButton.onClick.RemoveAllListeners();
-                buyButton.onClick.AddListener(BuyInput);
+                buyButton.onClick.AddListener(ActivateAbility);
+            }
+
+            TextMeshProUGUI tip1 = buyButton.transform.Find("Tip1")?.GetComponent<TextMeshProUGUI>();
+            if (tip1 == null)
+            {
+                Debug.LogError("Could not find Tip1!");
+            }
+
+            TextMeshProUGUI tip2 = buyButton.transform.Find("Tip2")?.GetComponent<TextMeshProUGUI>();
+            if (tip2 == null)
+            {
+                Debug.LogError("Could not find Tip2!");
             }
 
             #endregion
@@ -272,8 +308,10 @@ namespace HideAndSeek.AbilityScripts
                     groupButtons.Add(catigory, newGroupButton);
                 }
 
+
+            currentCategoryIndex = abilityCategories.Count - 1;
             selectedAbilities = allAbilities;
-            selectedAbility = GetSeletedAbilityIndex(currentIndex);
+            selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
 
             #endregion
 
@@ -318,8 +356,8 @@ namespace HideAndSeek.AbilityScripts
 
                 roundStarted = true;
                 selectedAbilities = GetUsableAbilities(selectedAbilities);
-                currentIndex = 0;
-                selectedAbility = GetSeletedAbilityIndex(currentIndex);
+                currentAbilityIndex = 0;
+                selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
                 DisplayAbility(selectedAbility);
             }
             else if(roundStarted && StartOfRound.Instance.inShipPhase)
@@ -328,8 +366,8 @@ namespace HideAndSeek.AbilityScripts
 
                 roundStarted = false;
                 selectedAbilities = allAbilities;
-                currentIndex = 0;
-                selectedAbility = GetSeletedAbilityIndex(currentIndex);
+                currentAbilityIndex = 0;
+                selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
                 DisplayAbility(selectedAbility);
             }
 
@@ -415,7 +453,11 @@ namespace HideAndSeek.AbilityScripts
         {
             ToggleAbilityUI(false);
         }
-        void BuyInput()
+        void ActivateInput(InputAction.CallbackContext context)
+        {
+            ActivateAbility();
+        }
+        void ActivateAbility()
         {
             if (!initalized || !gameObject.activeSelf) return;
 
@@ -441,19 +483,68 @@ namespace HideAndSeek.AbilityScripts
 
             AudioManager.PlaySound("SwitchAbility", 0.5f, 1.4f);
         }
+        void UpInput(InputAction.CallbackContext context)
+        {
+            if (!initalized || !gameObject.activeSelf) return;
+
+            PreviousCategory();
+
+            AudioManager.PlaySound("SwitchAbility", 0.5f, 1.4f);
+        }
+        void DownInput(InputAction.CallbackContext context)
+        {
+            if (!initalized || !gameObject.activeSelf) return;
+
+            NextCategory();
+
+            AudioManager.PlaySound("SwitchAbility", 0.5f, 1.4f);
+        }
         void ScrollInput(InputAction.CallbackContext context)
         {
             if (!initalized || !gameObject.activeSelf) return;
-            
-            float value = context.ReadValue<float>();
+
+            float value = context.ReadValue<Vector2>().y;
             bool scrollUp = value > 0;
             bool scrollDown = value < 0;
             if (scrollUp)
             {
+                AudioManager.PlaySound("SwitchAbility", 0.5f, 1.4f);
                 PreviousAbility();
             } else if (scrollDown)
             {
+                AudioManager.PlaySound("SwitchAbility", 0.5f, 1.4f);
                 NextAbility();
+            }
+        }
+        void ScrollCategoriesInput(InputAction.CallbackContext context)
+        {
+            if (!initalized || !gameObject.activeSelf) return;
+
+            float categoryValue = context.ReadValue<Vector2>().y;
+            float abilityValue = context.ReadValue<Vector2>().x;
+            bool scrollUp = categoryValue < 0;
+            bool scrollDown = categoryValue > 0;
+            bool scrollLeft = abilityValue < 0;
+            bool scrollRight = abilityValue > 0;
+            if (scrollUp)
+            {
+                NextCategory();
+            }
+            else if (scrollDown)
+            {
+                PreviousCategory();
+            }
+            else if (scrollRight)
+            {
+                NextAbility();
+            }
+            else if (scrollLeft)
+            {
+                PreviousAbility();
+            }
+            else
+            {
+                return;
             }
             AudioManager.PlaySound("SwitchAbility", 0.5f, 1.4f);
         }
@@ -469,22 +560,40 @@ namespace HideAndSeek.AbilityScripts
             }
         }
 
+        void PreviousCategory()
+        {
+            currentCategoryIndex--;
+
+            if (currentCategoryIndex < 0) currentCategoryIndex = abilityCategories.Count - 1;
+
+            SwitchCategory(abilityCategories.Keys.ToArray()[currentCategoryIndex]);
+        }
+
+        void NextCategory()
+        {
+            currentCategoryIndex++;
+
+            if (currentCategoryIndex >= abilityCategories.Count) currentCategoryIndex = 0;
+
+            SwitchCategory(abilityCategories.Keys.ToArray()[currentCategoryIndex]);
+        }
+
         void NextAbility()
         {
-            currentIndex++;
+            currentAbilityIndex++;
 
-            if (currentIndex >= selectedAbilities.Count) currentIndex = 0;
+            if (currentAbilityIndex >= selectedAbilities.Count) currentAbilityIndex = 0;
 
-            DisplayAbility(GetSeletedAbilityIndex(currentIndex));
+            DisplayAbility(GetSeletedAbilityIndex(currentAbilityIndex));
         }
 
         void PreviousAbility()
         {
-            currentIndex--;
+            currentAbilityIndex--;
 
-            if (currentIndex < 0) currentIndex = selectedAbilities.Count-1;
+            if (currentAbilityIndex < 0) currentAbilityIndex = selectedAbilities.Count-1;
 
-            DisplayAbility(GetSeletedAbilityIndex(currentIndex));
+            DisplayAbility(GetSeletedAbilityIndex(currentAbilityIndex));
         }
 
         List<string> GetFavorites()
@@ -542,9 +651,20 @@ namespace HideAndSeek.AbilityScripts
         {
             if (abilityCategories.ContainsKey(category))
             {
+                foreach (var item in groupButtons)
+                {
+                    item.Value.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
+                }
+
+                var button = groupButtons[category];
+
+                button.GetComponentInChildren<TextMeshProUGUI>().color = Color.red;
+
+                currentCategoryIndex = abilityCategories.Keys.ToList().IndexOf(category);
+
                 selectedAbilities = GetUsableAbilities(abilityCategories[category]);
-                currentIndex = 0;
-                selectedAbility = GetSeletedAbilityIndex(currentIndex);
+                currentAbilityIndex = 0;
+                selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
                 DisplayAbility(selectedAbility);
             }
         }
@@ -612,7 +732,7 @@ namespace HideAndSeek.AbilityScripts
 
                 abilitySpriteUI.sprite = AbilitySpriteManager.GetSprite(ability.abilityName);
 
-                pageUI.text = $"Page [{currentIndex+1}/{selectedAbilities.Count}]";
+                pageUI.text = $"Page [{currentAbilityIndex+1}/{selectedAbilities.Count}]";
 
                 selectedAbility = ability;
                 UpdateTextColor();

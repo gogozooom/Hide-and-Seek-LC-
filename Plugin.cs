@@ -10,6 +10,7 @@ using UnityEngine;
 using Debug = Debugger.Debug;
 using static BepInEx.BepInDependency;
 using System.Collections.Generic;
+using LCVR.Physics.Interactions;
 
 namespace HideAndSeek
 {
@@ -93,6 +94,9 @@ namespace HideAndSeek
 
             Debug.Log("Patching .MaskedPlayerEnemyPatch");
             harmony.PatchAll(typeof(MaskedPlayerEnemyPatch));
+
+            Debug.Log("Patching .StartMatchLeverPatch");
+            harmony.PatchAll(typeof(StartMatchLeverPatch));
 
             // Network Assets
             var dllFolderPath = System.IO.Path.GetDirectoryName(Info.Location);

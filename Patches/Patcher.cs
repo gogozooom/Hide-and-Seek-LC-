@@ -8,6 +8,8 @@ using LCVR.Player;
 using LethalNetworkAPI;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Diagnostics;
 using Unity.Netcode;
 using UnityEngine;
 using Debug = Debugger.Debug;
@@ -324,6 +326,7 @@ namespace HideAndSeek.Patches
 
 
             GameObject.FindObjectOfType<RoundManager>().StartCoroutine(AbilityManager.ConnectStart());
+            Objective.StartTicking();
         }
 
         static bool shipLeaving = false;
@@ -368,8 +371,8 @@ namespace HideAndSeek.Patches
                     {
                         if (!Plugin.seekers.Contains(player) && player.gameObject.activeSelf)
                         {
-                            NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
-                            NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
+                            //NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
+                            //NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
                         }
                     }
             }
@@ -794,6 +797,23 @@ namespace HideAndSeek.Patches
                 Debug.Log($"It using new lever thingy hehehe; Player id ({leverLastFlippedBy})");
                 seekerPlayerId = leverLastFlippedBy;
             }
+            else if (pickType == "closest" && Plugin.seekers.Count > 0)
+            {
+                float closestDistance = float.PositiveInfinity;
+
+                foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+                {
+                    if (player.isPlayerControlled && !Plugin.seekers.Contains(player))
+                    {
+                        if ((player.transform.position - Plugin.seekers[0].transform.position).magnitude < closestDistance)
+                        {
+                            seekerPlayerId = player.actualClientId;
+                        }
+                    }
+                }
+
+                Debug.Log("[Closets] Closest player number = " + seekerPlayerId);
+            }
             else
             {
                 List<ulong> currentPool = new();
@@ -889,12 +909,13 @@ namespace HideAndSeek.Patches
         public static void PlayerDied(string reason = "", bool checking = false)
         {
             int aliveHidersCount = 0;
+            int hidersObjectivesCompleted = 0;
             int aliveSeekersCount = 0;
             int aliveZombieCount = 0;
 
             foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
             {
-                if (!player.isPlayerDead)
+                if (!player.isPlayerDead && player.gameObject.tag != "Decoy")
                 {
                     if (Plugin.zombies.Contains(player))
                     {
@@ -904,6 +925,10 @@ namespace HideAndSeek.Patches
                     {
                         // Alive Seeker
                         aliveSeekersCount++;
+                    }
+                    else if (Objective.PlayerReachedObjective(player))
+                    {
+                        hidersObjectivesCompleted++;
                     }
                     else
                     {
@@ -928,7 +953,7 @@ namespace HideAndSeek.Patches
                     {
                         if (!Plugin.seekers.Contains(player) && player.gameObject.activeSelf && !player.isPlayerDead)
                         {
-                            NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
+                            //NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
                         }
                     }
                 }
@@ -954,22 +979,35 @@ namespace HideAndSeek.Patches
 
                 if (aliveHidersCount <= 0 && GameNetworkManager.Instance.connectedPlayers != 1) // Last part is for testing in solo, so I don't get immidiently kicked out
                 {
-                    if (!rewardedPlayersD)
+                    if (hidersObjectivesCompleted > 0)
                     {
-                        rewardedPlayersD = true;
-                        seekersWon = true;
-                        foreach (var player in Plugin.seekers)
+                        if (!checking)
                         {
-                            NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 500, __string: "silent")); // Give Seeker Money
+                            NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Objective Reached; Hiders Win!", _bool = true });
                         }
+                        Debug.LogMessage($"_________ HIDERS WON! _________ Objectives Complete? '{hidersObjectivesCompleted}'");
+                        lever.EndGame();
+                        lever.LeverAnimation();
                     }
-                    if (!checking)
+                    else
                     {
-                        NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Seeker Won!", _bool = true });
+                        if (!rewardedPlayersD)
+                        {
+                            rewardedPlayersD = true;
+                            seekersWon = true;
+                            foreach (var player in Plugin.seekers)
+                            {
+                                //NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 500, __string: "silent")); // Give Seeker Money
+                            }
+                        }
+                        if (!checking)
+                        {
+                            NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Seeker Won!", _bool = true });
+                        }
+                        Debug.LogMessage($"_________ SEEKER WON! _________ {GameNetworkManager.Instance.connectedPlayers} Connected player amount. != 1?: {StartOfRound.Instance.connectedPlayersAmount != 1} ");
+                        lever.EndGame();
+                        lever.LeverAnimation();
                     }
-                    Debug.LogMessage($"_________ SEEKER WON! _________ {GameNetworkManager.Instance.connectedPlayers} Connected player amount. != 1?: {StartOfRound.Instance.connectedPlayersAmount != 1} ");
-                    lever.EndGame();
-                    lever.LeverAnimation();
                 }
                 else if (aliveHidersCount >= 1 && !checking)
                 {
@@ -978,11 +1016,13 @@ namespace HideAndSeek.Patches
                         if (Config.shipLeaveEarly.Value && Config.timeWhenLastHider.Value > TimeOfDay.Instance.currentDayTime)
                             NetworkHandler.Instance.EventSendRpc(".setDayTime", new(__float: Config.timeWhenLastHider.Value));
 
-                        NetworkHandler.Instance.EventSendRpc(".tip", new(__string: "1 Hider Remains..."));
+                        if (reason != "Objective")
+                            NetworkHandler.Instance.EventSendRpc(".tip", new(__string: "1 Hider Remains..."));
                     }
                     else
                     {
-                        NetworkHandler.Instance.EventSendRpc(".tip", new(__string: $"{aliveHidersCount} Hiders Remain..."));
+                        if (reason != "Objective")
+                            NetworkHandler.Instance.EventSendRpc(".tip", new(__string: $"{aliveHidersCount} Hiders Remain..."));
                     }
                     if (Config.deadHidersRespawn.Value && aliveHidersCount > 0)
                     {
@@ -3354,6 +3394,13 @@ namespace HideAndSeek.Patches
             GameObject.Find("Systems/UI/Canvas/DeathScreen").SetActive(false);
             Debug.LogMessage($"Damaged recived: {causeOfDeath}");
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
+
+            if (Objective.PlayerReachedObjective(localPlayer))
+            {
+                Debug.LogError($"Tried to damage player '{localPlayer.playerUsername}' but he has reached the objective!");
+                return false; // Player reached objective!
+            }
+
             if (Plugin.seekers.Contains(localPlayer) || Plugin.zombies.Contains(localPlayer)) // Is seeker
             {
                 if (causeOfDeath == CauseOfDeath.Abandoned)
@@ -3491,7 +3538,7 @@ namespace HideAndSeek.Patches
 
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
 
-            if(!Plugin.seekers.Contains(localPlayer) && !Plugin.zombies.Contains(localPlayer) && !Plugin.zombies.Contains(localPlayer) && RoundManagerPatch.playersTeleported >= players.Count && Config.lockHidersInside.Value)
+            if(!Plugin.seekers.Contains(localPlayer) && !Plugin.zombies.Contains(localPlayer) && RoundManagerPatch.playersTeleported >= players.Count && Config.lockHidersInside.Value && !Objective.objectiveReleased)
             {
                 HUDManager.Instance.DisplayTip("???", "The entrance appears to be blocked.");
                 return false;
@@ -3692,6 +3739,25 @@ namespace HideAndSeek.Patches
                     }
                 }
             }
+        }
+    }
+    [HarmonyPatch(typeof(StartMatchLever))]
+    public class StartMatchLeverPatch
+    {
+        [HarmonyPatch("LeverAnimation")]
+        [HarmonyPrefix]
+        public static bool LeverAnimationPatch()
+        {
+            PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
+
+            //Debug.LogError("Ship lever animation! " + System.Environment.StackTrace);
+
+            if (!Plugin.seekers.Contains(localPlayer) && !localPlayer.IsHost && !StartOfRound.Instance.inShipPhase && Config.lockShipLever.Value)
+            {
+                HUDManager.Instance.DisplayTip("Hide And Seek", "You are not allowed to end the round!", true);
+                return false;
+            }
+            return true;
         }
     }
 }

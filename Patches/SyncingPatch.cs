@@ -396,6 +396,12 @@ namespace HideAndSeek.Patches
                 }
             }
 
+            if (StartOfRound.Instance.shipIsLeaving)
+            {
+                Debug.LogError("Round Ending Prematurly");
+                yield break;
+            }
+
             if (isHost)
             {
                 RoundManagerPatch.PlayerDied("Teleport Self", checking: true);
@@ -452,7 +458,6 @@ namespace HideAndSeek.Patches
                 }
             }
 
-
             while (timeOfDay.currentDayTime < Config.timeSeekerIsReleased.Value)
             {
                 int aliveSeekers = 0;
@@ -476,6 +481,12 @@ namespace HideAndSeek.Patches
                 }
                 //Debug.LogMessage("Current Time: " + timeOfDay.currentDayTime + " Target Time: " + Config.timeSeekerIsReleased.Value);
                 yield return new WaitForSeconds(1);
+            }
+
+            if (StartOfRound.Instance.shipIsLeaving)
+            {
+                Debug.LogError("Round Ending Prematurly");
+                yield break;
             }
 
             if (isHost)

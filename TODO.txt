@@ -2,49 +2,29 @@ TODO:
 
 Bugs:
 
-	FIXED : GetPlayerWithClientId() sometimes failing.
-
-	FIXED : Game soft locking when the seeker dies early r smth like that.
-
-	FIXED : Unable to spawn Turrets or Landmines when disabled in the config.
-
-	FIXED : 0 days left to meet the profit quota? (Properly this time)
+	Testing : Hiders can make the ship leave early. (Bad for objectives)
 
 Features:
-
-	DONE : Make teleport and swap ability take a few seconds to teleport you.
-		- Targets can be anyone (Swap)
-		- Targets are teleported to where the ability was used (Swap)
-
-	DONE : Support for multiple seekers.
 	
-	REMEMBER! : Lever extra seeker picker support
-
-	DONE : Random item choices.
-
-	DONE : User name colors.
-
-	DONE : Ability config.
-
-	DONE : Nerf Critical Injury
-		- abilityDelay 60 -> 120
-		- Target can now avoid concequences 
-
-	DONE : Give purpose to caught hiders.
-
-	Hiders escape back to ship (Hider Objective)
+	DONE : Closest extra seeker picker support
+	
+	DONE : Hiders escape back to ship (Hider Objective)
 		DESC: And the hiders having to escape back to the ship is a good idea,
 		I could make it so that after a certain point the exits will be unlocked and the hiders will be notified that they can escape.
 		And I also need to make it so that the players are invincible once they are in the ship so it can act like a safe zone.
 		(And now that I'm thinking about it, disable flipping the lever to leave early to give the other hiders a chance,
 		AND also make the ship automatically leave once all the hiders that are still alive are in the ship.)
-
-
 	
-	Rework Round Rewards
+	TMP REMOVED : Rework Round Rewards
 
-	Decoy ability
+	DONE : Controller support
 
-	Controller and VR support
+	VR support
 
 	Tutorial
+
+	Nahh bruh : Decoy ability
+
+Removed:
+
+	Done : hostiles ignore seeker config

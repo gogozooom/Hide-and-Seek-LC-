@@ -38,6 +38,9 @@
     <Reference Include="LCVR">
       <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\HideAndSeek\BepInEx\plugins\DaXcess-LethalCompanyVR\LCVR\LCVR.dll</HintPath>
     </Reference>
+    <Reference Include="LethalCompanyInputUtils">
+      <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\HideAndSeekLite\BepInEx\plugins\Rune580-LethalCompany_InputUtils\LethalCompanyInputUtils\LethalCompanyInputUtils.dll</HintPath>
+    </Reference>
     <Reference Include="LethalNetworkAPI">
       <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\The Lethals\BepInEx\plugins\xilophor-LethalNetworkAPI\LethalNetworkAPI\LethalNetworkAPI.dll</HintPath>
     </Reference>

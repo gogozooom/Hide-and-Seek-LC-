@@ -2,6 +2,7 @@
 using HideAndSeek.AbilityScripts.Extra;
 using HideAndSeek.AudioScripts;
 using HideAndSeek.Patches;
+using LethalCompanyInputUtils.Config;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -76,6 +77,11 @@ namespace HideAndSeek.AbilityScripts
                 _serverEvent:SwapServerEvent, _clientEvent:SwapClientEvent,
                 _abilityCost:450, _abilityDelay:60f,
                 _seekerAbility:false),
+
+            new AbilityBase(_abilityName:"Decoy", _abilityDescription:"Idk yet...", _abilityCategory:"HIDDEN",
+                _abilityCost:0, _abilityDelay:0,
+                _serverEvent:DecoyServerEvent, _clientEvent:DecoyClientEvent,
+                _seekerAbility:true), // TMP!!! TODO
 
             new AbilityBase(_abilityName:"Stealth", _abilityDescription:"Sneak past your enemies completely silently for 30 seconds!", _abilityCategory:"Stealth",
                 _serverEvent:StealthServerEvent, _clientEvent:StealthClientEvent,
@@ -1050,6 +1056,36 @@ namespace HideAndSeek.AbilityScripts
         }
         #endregion
 
+        #region Decoy
+
+        static void DecoyServerEvent(AbilityBase ability, ulong activatorId)
+        {
+            ability.ActivateClient(activatorId, null);
+        }
+        static void DecoyClientEvent(AbilityBase ability, ulong activatorId, string extraMessage = null)
+        {
+            PlayerControllerB localPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
+
+            GameObject decoy = GameObject.Instantiate(localPlayer.gameObject);
+
+            PlayerControllerB playerDecoy = decoy.GetComponent<PlayerControllerB>();
+
+            decoy.tag = "Decoy";
+            playerDecoy.thisPlayerModel.enabled = true;
+            decoy.transform.Find("EmoteCameraPivot")?.gameObject.SetActive(false);
+            decoy.GetComponent<NetworkObject>().enabled = false;
+
+            if (decoy.GetComponent<AbilityInstance>() != null)
+            {
+                GameObject.Destroy(decoy.GetComponent<AbilityInstance>());
+            }
+
+
+            Debug.LogError("Clone Spawned!");
+        }
+
+        #endregion
+
         #endregion
 
         #region _FinderMethods_
@@ -1088,6 +1124,9 @@ namespace HideAndSeek.AbilityScripts
         public static AbilityConfig FindAbilityConfigByName(string name, bool check = false)
         {
             AbilityConfig abilityCfg = null;
+            AbilityBase ability = FindAbilityByName(name, true);
+
+            if (ability == null) { return null; }
 
             foreach (var _ability in abilityConfigs)
             {
@@ -1101,6 +1140,10 @@ namespace HideAndSeek.AbilityScripts
             if (abilityCfg == null)
             {
                 Debug.LogWarning($"FindAbilityConfigByName:'{name}' Could not find ability config!!");
+                if (GameNetworkManager.Instance.isHostingGame && !check)
+                {
+                    abilityConfigs.Add(AbilityToCfg(ability));
+                }
                 if (!GameNetworkManager.Instance.isHostingGame && GameNetworkManager.Instance?.localPlayerController != null && !check)
                 {
                     // Client
