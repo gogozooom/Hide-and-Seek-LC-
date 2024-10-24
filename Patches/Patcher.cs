@@ -123,7 +123,7 @@ namespace HideAndSeek.Patches
             }
             catch (System.Exception)
             {
-                Debug.LogWarning("ReviveVRPlayerLocal Ran into an error!");
+                Debug.LogError("ReviveVRPlayerLocal Ran into an error!");
                 //throw;
             }
 
@@ -191,6 +191,7 @@ namespace HideAndSeek.Patches
                         player.hinderedMultiplier = 1f;
                         player.isMovementHindered = 0;
                         player.sourcesCausingSinking = 0;
+                        HUDManager.Instance.HideHUD(false);
                         Debug.Log("Reviving players E2");
                         player.reverbPreset = _this.shipReverb;
                     }
@@ -233,10 +234,10 @@ namespace HideAndSeek.Patches
             _this.livingPlayers += 1;
             _this.UpdatePlayerVoiceEffects();
 
-            if (canvas)
+            if (canvas) // For "systems online" effect
             {
                 canvas.SetActive(true);
-                GameObject.Find("Systems/UI/Canvas/DeathScreen").SetActive(false);
+                //GameObject.Find("Systems/UI/Canvas/DeathScreen").SetActive(false);
                 _this.StartCoroutine(FixTip());
             }
 
@@ -324,7 +325,6 @@ namespace HideAndSeek.Patches
 
             if (!Config.abilitiesEnabled.Value) { return; }
 
-
             GameObject.FindObjectOfType<RoundManager>().StartCoroutine(AbilityManager.ConnectStart());
             Objective.StartTicking();
         }
@@ -366,15 +366,24 @@ namespace HideAndSeek.Patches
                 // Round Ended
                 shipLeaving = false;
 
-                if (Plugin.seekers.Count > 0 && !seekersWon)
+                if (Plugin.seekers.Count > 0)
+                {
                     foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
                     {
-                        if (!Plugin.seekers.Contains(player) && player.gameObject.activeSelf)
+                        if (player.gameObject.activeSelf)
                         {
-                            //NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
-                            //NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
+                            if (!Plugin.seekers.Contains(player) && !seekersWon)
+                            {
+                                NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
+                                NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
+                            } else if (Plugin.seekers.Contains(player) && seekersWon)
+                            {
+                                NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 400, __string: "silent")); // Give Seekers Money
+                                NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
+                            }
                         }
                     }
+                }
             }
         }
 
@@ -398,7 +407,6 @@ namespace HideAndSeek.Patches
 
             seekersWon = false;
             currentLevel = newLevel;
-            rewardedPlayersD = false;
             bool isHost = GameNetworkManager.Instance.isHostingGame;
             if (!isHost) return true;
 
@@ -656,11 +664,11 @@ namespace HideAndSeek.Patches
 
             if (Config.numberOfSeekers.Value.Contains("%"))
             {
-                seekersThisRound = Mathf.RoundToInt(float.Parse(Config.numberOfSeekers.Value.Replace("%", "")) / 100 * players.Count); // [config]% or players.Count
+                seekersThisRound = Mathf.FloorToInt(float.Parse(Config.numberOfSeekers.Value.Replace("%", "")) / 100 * players.Count); // [config]% or players.Count
             }
             else
             {
-                seekersThisRound = int.Parse(Config.numberOfSeekers.Value.Split("%")[0]);
+                seekersThisRound = int.Parse(Config.numberOfSeekers.Value);
             }
 
             if (seekersThisRound >= players.Count)
@@ -903,7 +911,6 @@ namespace HideAndSeek.Patches
 
             return ulong.Parse(playerIDString);
         }
-        static bool rewardedPlayersD = false;
         static bool seekersWon = false;
         static List<PlayerControllerB> revivedPlayers = new();
         public static void PlayerDied(string reason = "", bool checking = false)
@@ -938,25 +945,13 @@ namespace HideAndSeek.Patches
                 }
             }
 
-            if (checking)
-                Debug.Log($"Checking dead people... Seekers dead: {aliveSeekersCount <= 0} Alive hider count: {aliveHidersCount} Is ship leaving: {StartOfRound.Instance.shipIsLeaving}");
+            //if (checking) Debug.Log($"Checking dead people... Seekers dead: {aliveSeekersCount <= 0} Alive hider count: {aliveHidersCount} Is ship leaving: {StartOfRound.Instance.shipIsLeaving}");
+            
             if (StartOfRound.Instance.shipIsLeaving) { return; }
-
 
             StartMatchLever lever = GameObject.FindAnyObjectByType<StartMatchLever>();
             if (aliveSeekersCount <= 0)
             {
-                if (!rewardedPlayersD)
-                {
-                    rewardedPlayersD = true;
-                    foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
-                    {
-                        if (!Plugin.seekers.Contains(player) && player.gameObject.activeSelf && !player.isPlayerDead)
-                        {
-                            //NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
-                        }
-                    }
-                }
                 if (!checking)
                 {
                     NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Seeker Died; Hiders Win!", _bool = true });
@@ -966,6 +961,17 @@ namespace HideAndSeek.Patches
                 {
                     lever.EndGame();
                     lever.LeverAnimation();
+                    foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+                    {
+                        if (!player.isPlayerDead && player.isPlayerControlled && !Plugin.seekers.Contains(player) && !Plugin.zombies.Contains(player))
+                        {
+                            // Last alive hiders
+
+                            int reward = Mathf.RoundToInt((1080 - Config.timeSeekerIsReleased.Value) * 12 / 60); // Total Reward
+
+                            NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: reward, __string: "silent")); // Give Hider Money
+                        }
+                    }
                 }
 
                 return;
@@ -988,17 +994,24 @@ namespace HideAndSeek.Patches
                         Debug.LogMessage($"_________ HIDERS WON! _________ Objectives Complete? '{hidersObjectivesCompleted}'");
                         lever.EndGame();
                         lever.LeverAnimation();
+
+                        foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+                        {
+                            if (!player.isPlayerDead && player.isPlayerControlled && !Plugin.seekers.Contains(player) && !Plugin.zombies.Contains(player))
+                            {
+                                // Last alive hiders
+
+                                int reward = Mathf.RoundToInt((1080 - Config.timeSeekerIsReleased.Value) * 12 / 60); // Total Reward
+
+                                NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: reward, __string: "silent")); // Give Hider Money
+                            }
+                        }
                     }
                     else
                     {
-                        if (!rewardedPlayersD)
+                        if (!seekersWon)
                         {
-                            rewardedPlayersD = true;
                             seekersWon = true;
-                            foreach (var player in Plugin.seekers)
-                            {
-                                //NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 500, __string: "silent")); // Give Seeker Money
-                            }
                         }
                         if (!checking)
                         {
@@ -1024,23 +1037,37 @@ namespace HideAndSeek.Patches
                         if (reason != "Objective")
                             NetworkHandler.Instance.EventSendRpc(".tip", new(__string: $"{aliveHidersCount} Hiders Remain..."));
                     }
-                    if (Config.deadHidersRespawn.Value && aliveHidersCount > 0)
-                    {
-                        foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
-                        {
-                            if (player.isPlayerDead && !Plugin.zombies.Contains(player) && !Plugin.seekers.Contains(player))
-                            {
-                                if (revivedPlayers.Contains(player) && Config.deadZombiesRespawn.Value)
-                                {
-                                    continue;
-                                }
+                }
+            }
 
-                                Plugin.zombies.Add(player);
-                                revivedPlayers.Add(player);
-                                PatchesManager.ReviveAfterWaitAndCallRpc(player, Config.zombieSpawnDelay.Value);
-                                break;
-                            }
+            if (!checking)
+            {
+                foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+                {
+                    if (player.isPlayerDead && !Plugin.zombies.Contains(player) && !Plugin.seekers.Contains(player))
+                    {
+                        if (revivedPlayers.Contains(player) && Config.deadZombiesRespawn.Value)
+                        {
+                            continue;
                         }
+
+                        int reward = Mathf.RoundToInt((TimeOfDay.Instance.currentDayTime - Config.timeSeekerIsReleased.Value) * 12 / 60);
+
+                        if (reward < 0) reward = 0;
+
+                        Debug.LogError($"Hider {player.playerUsername} recived a reward of {reward}, survived for = {TimeOfDay.Instance.currentDayTime - Config.timeSeekerIsReleased.Value}");
+                        NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: reward, __string: "silent")); // Give Hider Money
+
+                        foreach (var seeker in Plugin.seekers)
+                        {
+                            NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: seeker.actualClientId, __int: 50, __string: "silent")); // Give Seeker Money
+                        }
+
+                        Plugin.zombies.Add(player);
+                        revivedPlayers.Add(player);
+
+                        if (aliveHidersCount > 0 && Config.deadHidersRespawn.Value)
+                            PatchesManager.ReviveAfterWaitAndCallRpc(player, Config.zombieSpawnDelay.Value);
                     }
                 }
             }
@@ -1075,7 +1102,7 @@ namespace HideAndSeek.Patches
                     yield break;
                 }
 
-                Debug.Log($"[Progress] Players Teleported: {playersTeleported}, item Spawn Positions: {itemSpawnPositions.Count}");
+                //Debug.Log($"[Progress] Players Teleported: {playersTeleported}, item Spawn Positions: {itemSpawnPositions.Count}");
                 yield return new WaitForSeconds(1);
             }
 
@@ -3391,7 +3418,6 @@ namespace HideAndSeek.Patches
         [HarmonyPrefix]
         static bool DamagePlayerPatch(CauseOfDeath causeOfDeath = CauseOfDeath.Unknown)
         {
-            GameObject.Find("Systems/UI/Canvas/DeathScreen").SetActive(false);
             Debug.LogMessage($"Damaged recived: {causeOfDeath}");
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
 
@@ -3689,10 +3715,8 @@ namespace HideAndSeek.Patches
         [HarmonyPrefix]
         static void InteractPatch(ref InteractTrigger __instance, ref Transform playerTransform)
         {
-            Debug.Log($"Instance.name = {__instance.name}");
             if(__instance.name != "StartGameLever")
             {
-                Debug.LogWarning("Interactable is not lever! (StartGameLever)");
                 return;
             }
 
