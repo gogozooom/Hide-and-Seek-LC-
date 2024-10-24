@@ -10,10 +10,12 @@ namespace HideAndSeek.AbilityScripts
 {
     public class AbilityInstance : MonoBehaviour
     {
+        public static AbilityInstance localInstance;
         public int money = 0;
         public PlayerControllerB attachedPlayer;
 
         public AbilityUI abilityRadialMenu;
+        public GameObject tutorialMenu;
 
         public Action<int> moneyUpdatedAction;
 
@@ -24,6 +26,7 @@ namespace HideAndSeek.AbilityScripts
         InputAction sellAction = new("SellScrap");
 
         static GameObject abilityRadialMenuPrefab;
+        static GameObject tutorialMenuPrefab;
         bool emoteModExits;
 
         bool isOwner = false;
@@ -48,6 +51,11 @@ namespace HideAndSeek.AbilityScripts
             sellAction.canceled += SellInputCanceled;
             sellAction.Enable();
 
+            // Create Tutorial UI
+            if (tutorialMenuPrefab == null)
+            {
+                tutorialMenuPrefab = Plugin.tutorialRadialMenuBundle.LoadAsset<GameObject>("TutorialMenu");
+            }
             // Create Radial UI
             if (abilityRadialMenuPrefab == null)
             {
@@ -63,14 +71,23 @@ namespace HideAndSeek.AbilityScripts
             }
             else
             {
+                tutorialMenu = Instantiate(tutorialMenuPrefab, canvas.transform);
+                tutorialMenu.transform.localPosition = Vector3.zero;
+                tutorialMenu.gameObject.name = "[Hide and Seek] TutorialMenu";
+                tutorialMenu.gameObject.SetActive(false);
+                Debug.LogMessage("[Ability Instance] Created Tutorial UI!");
+
                 abilityRadialMenu = Instantiate(abilityRadialMenuPrefab, canvas.transform).GetComponent<AbilityUI>();
                 abilityRadialMenu.transform.localPosition = Vector3.zero;
                 abilityRadialMenu.gameObject.name = "AbilityRadialMenu";
                 abilityRadialMenu.gameObject.SetActive(false);
                 Debug.LogMessage("[Ability Instance] Created Ability UI!");
+
             }
 
             emoteModExits = canvas.transform.FindChild("EmotesRadialMenu")?.gameObject != null;
+
+            localInstance = this;
         }
 
         bool roundStarted = false;
@@ -101,7 +118,7 @@ namespace HideAndSeek.AbilityScripts
 
         // Money/Sell Management
         bool sellingScrap = false;
-        void SellInputPressed(InputAction.CallbackContext context = new())
+        public void SellInputPressed(InputAction.CallbackContext context = new())
         {
             Vector2 movementInput = IngamePlayerSettings.Instance.playerInput.actions.FindAction("Move", false).ReadValue<Vector2>();
 
@@ -119,7 +136,7 @@ namespace HideAndSeek.AbilityScripts
             Invoke(nameof(SellSelectedScrap), 3f);
             DisplayTip("Selling Scrap...");
         }
-        void SellInputCanceled(InputAction.CallbackContext context = new())
+        public void SellInputCanceled(InputAction.CallbackContext context = new())
         {
             if (!sellingScrap) return;
             GrabbableObject item = attachedPlayer.ItemSlots[attachedPlayer.currentItemSlot];

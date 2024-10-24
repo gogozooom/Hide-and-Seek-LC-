@@ -86,18 +86,16 @@ namespace HideAndSeek.AudioScripts
             {
                 if (random == -1f)
                 {
-                    random = Random.RandomRange(0f, 1f);
+                    random = Random.Range(0f, 1f);
                 }
-                random *= clipsFound.Count - 0.01f;
+                random *= clipsFound.Count;
 
-                random += -0.5f; // fix for last sound and first sound being half as probable
-
-                if (random < 0) // for -0.5f case
+                if (random < 0)
                 {
                     random = 0f;
                 }
 
-                int index = Mathf.RoundToInt(random);
+                int index = Mathf.FloorToInt(random);
 
                 return clipsFound[index];
             }
@@ -106,9 +104,9 @@ namespace HideAndSeek.AudioScripts
             return null;
         }
 
-        public static OneTimeAudio PlaySound(string name, float volume = 1f, float pitch = 1f, Vector3 position = new(), float spatialBend = 0, float minDistance = 1, float maxDistance = 500, float random = -1f, Transform parent = null)
+        public static OneTimeAudio PlaySound(string name, float volume = 1f, float pitch = 1f, Vector3 position = new(), float spatialBend = 0, float minDistance = 1, float maxDistance = 500, float random = -1f, bool isFullName = false, Transform parent = null)
         {
-            AudioClip clip = GetSound(name, random:random);
+            AudioClip clip = GetSound(name, isFullName, random);
 
             return PlaySound(clip, volume, pitch, position, spatialBend, minDistance, maxDistance, parent);
         }

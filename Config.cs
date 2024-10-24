@@ -16,6 +16,7 @@ namespace HideAndSeek
         public static ConfigEntry<bool> abilitiesEnabled;
         public static ConfigEntry<bool> creditsResetOnNewRound;
         public static ConfigEntry<int> deadBodySellValue;
+        public static ConfigEntry<bool> disableVRTurningWhileMenuOpen;
 
         // Gamemode.Objective
         public static ConfigEntry<string> objective;
@@ -131,6 +132,12 @@ namespace HideAndSeek
                 "Dead Body Value",
                 100,
                 "How much a dead body is worth when selling"
+            );
+            disableVRTurningWhileMenuOpen = cfg.Bind(
+                "0:Gamemode.Abilities",
+                "Disable VR Turning While Menu Open",
+                false,
+                "(In VR Mode) Disables turning while the ability menu is open to make browsing through the abilities a little less weird. (WARNING: This is a little buggy, as the vr rig rotation gets reset everytime the menu opens! Which is probably not any better than with this off)"
             );
 
             #endregion
@@ -373,8 +380,8 @@ namespace HideAndSeek
             numberOfSeekers = cfg.Bind(
                 "2:Players.Seeker",
                 "Number of Seekers",
-                "25%",
-                "'1'-[connected players] (Example '3') OR '1%'-'100%' (Example 25%): No matter what this is set to, (Example '0' or '100%') there will ALWAYS be at least 1 hider and 1 seeker (Unless there is only one connected player, then they would just be seeker)"
+                "20%",
+                "'1'-[connected players] (Example '3') OR '1%'-'100%' of connected players will be the seeker. (Example 20%). No matter what this is set to, (Example '0' or '100%') there will ALWAYS be at least 1 hider and 1 seeker (Unless there is only one connected player, then they would just be seeker)"
             );
             extraSeekerChooseBehavior = cfg.Bind(
                 "2:Players.Seeker",
@@ -541,7 +548,7 @@ namespace HideAndSeek
             zombieSpawnDelay = cfg.Bind(
                 "2:Players.Zombie",
                 "Zombie Spawn Delay",
-                5f,
+                8f,
                 "When a player dies, the thread will yield for the spesified amount of seconds before attempting to respawn them as a zombie."
             );
             zombieSpawnLocation = cfg.Bind(
