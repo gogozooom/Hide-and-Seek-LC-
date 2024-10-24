@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using UnityEngine;
-using static UnityEngine.InputSystem.LowLevel.InputStateHistory;
 
 namespace HideAndSeek
 {
@@ -87,10 +86,6 @@ namespace HideAndSeek
                                 else
                                 {
                                     HUDManager.Instance.DisplayTip("Hide And Seek", $"'{player.playerUsername}' has reached the objective!", true);
-                                }
-                                if (localPlayer.IsHost)
-                                {
-                                    NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 200, __string: "silent")); // Give Hider Reward
                                 }
                             }
                         }

@@ -209,7 +209,7 @@ namespace HideAndSeek.AbilityScripts
 
             yield return new WaitForSecondsRealtime(1);
 
-            HUDManager.Instance.DisplayTip("Warning", $"Something is coming... I should probably run.", true);
+            HUDManager.Instance.DisplayTip("Unknown", $"Something is coming...", true);
 
             yield return new WaitForSecondsRealtime(Random.Range(5f, 7f));
 
@@ -233,13 +233,17 @@ namespace HideAndSeek.AbilityScripts
             PlayerControllerB activatorPlayer = RoundManagerPatch.GetPlayerWithClientId(activatorId);
             AbilityInstance abilityInstance = activatorPlayer.GetComponent<AbilityInstance>();
 
-            int randomNumber = UnityEngine.Random.Range(1, 100);
-            float range = UnityEngine.Random.Range(0f, 1f);
+            int soundType = 0;
 
-            AudioClip sound;
+            int randomNumber = UnityEngine.Random.Range(1, 100);
+            float range = UnityEngine.Random.RandomRange(0f, 1f);
+
+
             if (randomNumber < 5)
             {
-                sound = AudioManager.GetSound("MegaBoi", random: range);
+                soundType = 2;
+
+                AudioClip sound = AudioManager.GetSound("MegaBoi", random: range);
 
                 Debug.LogError($"Got a total of {Mathf.RoundToInt(25 * sound.length)}$ from using taunt {sound.name}");
 
@@ -247,7 +251,9 @@ namespace HideAndSeek.AbilityScripts
             }
             else if (randomNumber < 12)
             {
-                sound = AudioManager.GetSound("BigBoi", random: range);
+                soundType = 1;
+
+                AudioClip sound = AudioManager.GetSound("BigBoi", random: range);
 
                 Debug.LogError($"Got a total of {Mathf.RoundToInt(12 * sound.length)}$ from using taunt {sound.name}");
 
@@ -255,14 +261,14 @@ namespace HideAndSeek.AbilityScripts
             }
             else
             {
-                sound = AudioManager.GetSound("Taunt", random: range);
+                AudioClip sound = AudioManager.GetSound("Taunt", random: range);
 
                 Debug.LogError($"Got a total of {Mathf.RoundToInt(5 * sound.length)}$ from using taunt {sound.name}");
                 NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: activatorId, __int: Mathf.RoundToInt(5 * sound.length), __string: "silent"));
             }
 
 
-            ability.ActivateClient(activatorId, sound.name);
+            ability.ActivateClient(activatorId, $"{soundType},{range}");
         }
 
         static void TauntClientEvent(AbilityBase ability, ulong activatorId, string extraMessage = null)
@@ -271,19 +277,21 @@ namespace HideAndSeek.AbilityScripts
             AbilityInstance abilityInstance = GameNetworkManager.Instance.localPlayerController.GetComponent<AbilityInstance>();
             Vector3 playerPosition = RoundManagerPatch.GetPlayerWithClientId(activatorId).transform.position;
 
-            string soundName = extraMessage;
+            float randomN = float.Parse(extraMessage.Split(",")[1]);
 
-            if (soundName.Contains("MegaBoi"))
+            int tauntType = int.Parse(extraMessage.Split(",")[0]);
+
+            if (tauntType == 2)
             {
-                AudioManager.PlaySound(soundName, position: playerPosition, spatialBend: 1, minDistance: 20, maxDistance: 800);
+                AudioManager.PlaySound("MegaBoi", position:playerPosition, spatialBend:1, minDistance: 20, maxDistance:800, random: randomN);
                 if (isUser)
                 {
                     abilityInstance.DisplayTip("You let out a massiv boi!", true);
                 }
             }
-            else if (soundName.Contains("BigBoi"))
+            else if (tauntType == 1)
             {
-                AudioManager.PlaySound(soundName, position: playerPosition, spatialBend: 1, minDistance: 12, maxDistance:400);
+                AudioManager.PlaySound("BigBoi", position: playerPosition, spatialBend: 1, minDistance: 12, maxDistance:400, random: randomN);
                 if (isUser)
                 {
                     abilityInstance.DisplayTip("You let out a big boi!", false);
@@ -291,7 +299,7 @@ namespace HideAndSeek.AbilityScripts
             }
             else
             {
-                AudioManager.PlaySound(soundName, position: playerPosition, spatialBend: 1, minDistance: 5, maxDistance: 200);
+                AudioManager.PlaySound("Taunt", position: playerPosition, spatialBend: 1, minDistance: 5, maxDistance: 200, random: randomN);
                 if (isUser)
                 {
                     abilityInstance.DisplayTip("You let out a lil boi.", false);
