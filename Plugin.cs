@@ -11,7 +11,6 @@ using Debug = Debugger.Debug;
 using static BepInEx.BepInDependency;
 using System.Collections.Generic;
 using LCVR.Physics.Interactions;
-using System.IO;
 
 namespace HideAndSeek
 {
@@ -20,7 +19,7 @@ namespace HideAndSeek
     {
         public const string PLUGIN_GUID = "gogozooom.HideAndSeek";
         public const string PLUGIN_NAME = "Hide And Seek";
-        public const string PLUGIN_VERSION = "1.4.0";
+        public const string PLUGIN_VERSION = "1.4.0.2";
 
         // Instances
         public static ManualLogSource _Logger;
@@ -30,7 +29,6 @@ namespace HideAndSeek
         public static List<PlayerControllerB> zombies = new();
         public static AssetBundle networkHandlerBundle;
         public static AssetBundle abilityRadialMenuBundle;
-        public static AssetBundle tutorialRadialMenuBundle;
         readonly Harmony harmony = new Harmony(PLUGIN_GUID);
         private void Awake()
         {
@@ -102,16 +100,12 @@ namespace HideAndSeek
 
             // Network Assets
             var dllFolderPath = System.IO.Path.GetDirectoryName(Info.Location);
-
             var networkHandlerPath = System.IO.Path.Combine(dllFolderPath, "networkhandler");
             networkHandlerBundle = AssetBundle.LoadFromFile(networkHandlerPath);
 
             // Ability Radial Menu
             var abilityRadialMenuPath = System.IO.Path.Combine(dllFolderPath, "abilityradialmenu");
             abilityRadialMenuBundle = AssetBundle.LoadFromFile(abilityRadialMenuPath);
-
-            var tutorialMenuPath = System.IO.Path.Combine(dllFolderPath, "tutorialmenu");
-            tutorialRadialMenuBundle = AssetBundle.LoadFromFile(tutorialMenuPath);
 
             AbilitySpriteManager.LoadSprites();
             StartCoroutine(AudioManager.LoadAudioCoroutine());

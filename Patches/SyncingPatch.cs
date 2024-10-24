@@ -392,7 +392,7 @@ namespace HideAndSeek.Patches
                 while (timeOfDay.currentDayTime <= 130) // Basically the exact time the ship lands
                 {
                     yield return new WaitForSecondsRealtime(0.5f);
-                    //Debug.Log($"[Client TeleportSelf] Tick {timeOfDay.currentDayTime}");
+                    Debug.Log($"[Client TeleportSelf] Tick {timeOfDay.currentDayTime}");
                 }
             }
 
@@ -412,7 +412,7 @@ namespace HideAndSeek.Patches
 
             if (Plugin.seekers.Contains(localPlayer))
             {
-                //Debug.LogMessage("[SEEKER] Attempted to teleport " + localPlayer.playerUsername + " but they are the seeker!");
+                Debug.LogMessage("[SEEKER] Attempted to teleport " + localPlayer.playerUsername + " but they are the seeker!");
 
                 if (GameObject.FindObjectOfType<AudioReverbPresets>())
                 {
@@ -430,7 +430,7 @@ namespace HideAndSeek.Patches
             }
             else
             {
-                //Debug.LogMessage("[HIDER] Teleporting to entrance... inside" + Config.forceHidersInside.Value);
+                Debug.LogMessage("[HIDER] Teleporting to entrance... inside" + Config.forceHidersInside.Value);
                 localPlayer.DropAllHeldItems(true, false);
                 Vector3 entrancePosition = (Vector3)AccessTools.Method(typeof(RoundManager), "FindMainEntrancePosition", null, null).Invoke(null, [true, !Config.forceHidersInside.Value]);
                 EntranceTeleport entranceScript = (EntranceTeleport)AccessTools.Method(typeof(RoundManager), "FindMainEntranceScript", null, null).Invoke(null, [Config.forceHidersInside.Value]);
