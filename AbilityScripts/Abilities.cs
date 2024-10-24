@@ -275,7 +275,7 @@ namespace HideAndSeek.AbilityScripts
 
             if (soundName.Contains("MegaBoi"))
             {
-                AudioManager.PlaySound(soundName, position: playerPosition, spatialBend: 1, minDistance: 20, maxDistance: 800);
+                AudioManager.PlaySound(soundName, isFullName:true, position: playerPosition, spatialBend: 1, minDistance: 20, maxDistance: 800);
                 if (isUser)
                 {
                     abilityInstance.DisplayTip("You let out a massiv boi!", true);
@@ -283,7 +283,7 @@ namespace HideAndSeek.AbilityScripts
             }
             else if (soundName.Contains("BigBoi"))
             {
-                AudioManager.PlaySound(soundName, position: playerPosition, spatialBend: 1, minDistance: 12, maxDistance:400);
+                AudioManager.PlaySound(soundName, isFullName: true, position: playerPosition, spatialBend: 1, minDistance: 12, maxDistance:400);
                 if (isUser)
                 {
                     abilityInstance.DisplayTip("You let out a big boi!", false);
@@ -291,7 +291,7 @@ namespace HideAndSeek.AbilityScripts
             }
             else
             {
-                AudioManager.PlaySound(soundName, position: playerPosition, spatialBend: 1, minDistance: 5, maxDistance: 200);
+                AudioManager.PlaySound(soundName, isFullName: true, position: playerPosition, spatialBend: 1, minDistance: 5, maxDistance: 200);
                 if (isUser)
                 {
                     abilityInstance.DisplayTip("You let out a lil boi.", false);

@@ -27,7 +27,7 @@
       <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\Default\BepInEx\core\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
@@ -36,16 +36,16 @@
       <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\Default\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="LCVR">
-      <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\HideAndSeek\BepInEx\plugins\DaXcess-LethalCompanyVR\LCVR\LCVR.dll</HintPath>
+      <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\HideAndSeekLite\BepInEx\plugins\DaXcess-LethalCompanyVR\LCVR\LCVR.dll</HintPath>
     </Reference>
     <Reference Include="LethalCompanyInputUtils">
       <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\HideAndSeekLite\BepInEx\plugins\Rune580-LethalCompany_InputUtils\LethalCompanyInputUtils\LethalCompanyInputUtils.dll</HintPath>
     </Reference>
     <Reference Include="LethalNetworkAPI">
-      <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\The Lethals\BepInEx\plugins\xilophor-LethalNetworkAPI\LethalNetworkAPI\LethalNetworkAPI.dll</HintPath>
+      <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\HideAndSeekLite\BepInEx\plugins\xilophor-LethalNetworkAPI\LethalNetworkAPI\LethalNetworkAPI.dll</HintPath>
     </Reference>
     <Reference Include="OdinSerializer">
-      <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\The Lethals\BepInEx\plugins\Lordfirespeed-OdinSerializer\Odin Serializer\OdinSerializer.dll</HintPath>
+      <HintPath>..\..\..\AppData\Roaming\r2modmanPlus-local\LethalCompany\profiles\HideAndSeekLite\BepInEx\plugins\Lordfirespeed-OdinSerializer\Odin Serializer\OdinSerializer.dll</HintPath>
     </Reference>
     <Reference Include="Unity.InputSystem">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Unity.InputSystem.dll</HintPath>

@@ -1,3 +1,7 @@
+## v1.4.1 Patch
+- Fixed:
+    - The taunt ability being broken.
+
 ## v1.4.0 Major update
 - Added:
     - Multiple Seekers!
