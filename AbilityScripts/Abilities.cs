@@ -57,6 +57,11 @@ namespace HideAndSeek.AbilityScripts
                 _requiresSeekerActive:false,
                 _serverEvent:SpawnFlashlightServerEvent),
 
+            new AbilityBase(_abilityName:"Laser Pointer", _abilityDescription:"Gives you a Laser Pointer! Usefull for scaring friends, or use it for a custom usage if another mod allow it.", _abilityCategory:"Item",
+                _oneTimeUse: true, _abilityCost:300,
+                _requiresSeekerActive:false,
+                _serverEvent:SpawnLaserPointerServerEvent),
+
             new AbilityBase(_abilityName:"Walkie-talkie", _abilityDescription:"Wanna talk to your teammates? Have a free walkie-talkie once per round!", _abilityCategory:"Item",
                 _oneTimeUse: true, _abilityCost:0,
                 _requiresSeekerActive:false,
@@ -313,6 +318,10 @@ namespace HideAndSeek.AbilityScripts
         static void SpawnFlashlightServerEvent(AbilityBase ability, ulong activatorId)
         {
             RoundManagerPatch.SpawnNewItem("Flashlight", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
+        }
+        static void SpawnLaserPointerServerEvent(AbilityBase ability, ulong activatorId)
+        {
+            RoundManagerPatch.SpawnNewItem("Laser pointer", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
         }
         static void SpawnWalkieServerEvent(AbilityBase ability, ulong activatorId)
         {

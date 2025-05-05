@@ -1,0 +1,26 @@
+<smallcaps>      BG IG, A System-Act Ally
+      Copyright<sup>(C)</sup> 2084-2108, Halden Electronics Inc.
+<mspace=0.6em>
+CPU Type:         BORSON<sup>TM</sup> 300 CPU at 2500 MHz
+Memory test:      4521586K OK
+
+Boot Distributioner Applicant v0.04
+Copyright<sup>(C)</sup> 2107 Gogozooom Ltd.
+    Booting Hide n seek system.
+    Detecting Hiders hiding
+    Starting Seeking Protocol
+    Lets KILL THEM ALL
+
+UTGF Device Listening...    
+
+Body    ID       Neural       Device       Class
+_____________________________________________________
+
+2       52       Same.        H515         Need
+2       52       Gogozooom    H515         To
+2       52       Sigurd       H515         Hide
+2       52       Phr4nk       H515         Before
+1       36       7r04ch       H515         You
+0       36       56s56s       H515         Die
+</mspace>
+</smallcaps>
