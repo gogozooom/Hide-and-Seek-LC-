@@ -14,7 +14,8 @@ Features:
 	- More customisable options on the config files
 	- Seeing the seekers on the screens too
 	- Outfit change by the role you are (Green suit = Hider, Yellow suit = Seeker) - (BONUS : Compatibility with more suits)
-	- Emblem compatibility for main menu logo (BONUS)
-	- LoadingScreen Compatibility (BONUS)
+	# DONE				- Emblem compatibility for main menu logo (BONUS)
+	# DONE				- LoadingScreen Compatibility (BONUS)
+	- RichPresence discord mod integration ? (BONUS)
 
 Removed:

@@ -7,9 +7,9 @@ Memory test:      4521586K OK
 Boot Distributioner Applicant v0.04
 Copyright<sup>(C)</sup> 2107 Gogozooom Ltd.
     Booting Hide n seek system.
-    Detecting Hiders hiding
     Starting Seeking Protocol
     Lets KILL THEM ALL
+
 
 UTGF Device Listening...    
 
