@@ -1,11 +1,20 @@
-TODO:
+TODO ON Same_ExperimentingBranch:
 
 Bugs:
 
+- Lag Issue between 9 PM and 10 PM, Client sided
+- Dropping all item on sell and cant pick up again
+		- The two following problem might be from the HoarderBugAI, like Gogozooom says.
+
 Features:
 
-	DONE : Tutorial
+	- New items on abilitys :
+		- Laser pointer
 
-	Nahh bruh : Decoy ability
+	- More customisable options on the config files
+	- Seeing the seekers on the screens too
+	- Outfit change by the role you are (Green suit = Hider, Yellow suit = Seeker) - (BONUS : Compatibility with more suits)
+	- Emblem compatibility for main menu logo (BONUS)
+	- LoadingScreen Compatibility (BONUS)
 
 Removed:
