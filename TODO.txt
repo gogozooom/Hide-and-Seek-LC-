@@ -9,13 +9,19 @@ Bugs:
 Features:
 
 	- New items on abilitys :
-		- Laser pointer
+	#ADDED											- Laser pointer
 
 	- More customisable options on the config files
-	- Seeing the seekers on the screens too
+	                 - ConfigAbility Already done, integrate in the code, replace the old system.
+	- Seeing the seekers on the screens too (Replace Quota, it's usless now.)
+	                 - Seekers names around the line 695 on patcher .cs.
+					 - To get the screen, maybe try search how the ship door has his properties modified to 
+					   make seeker don't open the door. Door and Screen from ship, Ship class ?
 	- Outfit change by the role you are (Green suit = Hider, Yellow suit = Seeker) - (BONUS : Compatibility with more suits)
-	# DONE				- Emblem compatibility for main menu logo (BONUS)
-	# DONE				- LoadingScreen Compatibility (BONUS)
+	                 - Seekers id around the line 695 on patcher .cs.
+					 - Maybe from the "PlayerControllerB" ? Need to get the outfit equiped and set that on the start of a round.
+	# DONE											- Emblem compatibility for main menu logo (BONUS)
+	# DONE			                             	- LoadingScreen Compatibility (BONUS)
 	- RichPresence discord mod integration ? (BONUS)
 
 Removed:
