@@ -570,6 +570,11 @@ namespace HideAndSeek.AbilityScripts
             UpdateTextColor();
         }
 
+        /// <summary>
+        /// Get the list of the usable abilities for the player.
+        /// </summary>
+        /// <param name="abilities"></param>
+        /// <returns></returns>
         List<string> GetUsableAbilities(List<string> abilities)
         {
             if (roundStarted)
@@ -608,6 +613,7 @@ namespace HideAndSeek.AbilityScripts
                 return abilities;
             }
         }
+
         void UpdateCredits(int newAmount)
         {
             Debug.Log($"UI got event with new amount {newAmount}");
@@ -933,7 +939,9 @@ namespace HideAndSeek.AbilityScripts
 
             return foundAbility;
         }
-        // Public Methods
+
+        #region Public Methods
+        // Public Methods       
         public void ToggleAbilityUI()
         {
             if (!attachedPlayer.gameObject.activeSelf) return;
@@ -1008,6 +1016,10 @@ namespace HideAndSeek.AbilityScripts
                 UpdateCoolDownFade();
             }
         }
+        
+        /// <summary>
+        /// Updating the text color showing on the ability menu.
+        /// </summary>
         public void UpdateTextColor()
         {
             if (selectedAbility == null)
@@ -1151,7 +1163,8 @@ namespace HideAndSeek.AbilityScripts
         {
             VRAbilityUI.OnApplicationQuit();
         }
-        
+        #endregion
+
         // Tutorial Methods
         public void TutNextButtonPressed()
         {

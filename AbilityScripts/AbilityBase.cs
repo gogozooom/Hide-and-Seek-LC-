@@ -89,5 +89,97 @@ namespace HideAndSeek.AbilityScripts
         {
             clientEvent?.Invoke(this, activatorId, extraMessage);
         }
+
+        #region Get abilities properties
+        // Methods to get the properties of the abilitys
+
+        /// <summary>
+        /// Check if the ability is aviable for the player by their role.
+        /// </summary>
+        /// <param name="ability"></param>
+        /// <param name="isPlayerSeeker"></param>
+        /// <returns>[bool] Ability aviability for this role</returns>
+        public bool IsAbilityAviableForRole(bool isPlayerSeeker)
+        {
+            return this.abilityName switch
+            {
+                "Taunt" => isPlayerSeeker ? ConfigAbility.tauntForSeekers.Value : ConfigAbility.tauntForHiders.Value,
+                _ => isPlayerSeeker ? this.seekerAbility : this.hiderAbility,
+            };
+        }
+
+        /// <summary>
+        /// Check if a one time use ability has already be used.
+        /// </summary>
+        /// <param name="ability"></param>
+        /// <returns> [bool] If the ability already used</returns>
+        public bool IsAbilityConsumed()
+        {
+            bool isOneTimeUse = this.abilityName switch
+            {
+                "Taunt" => ConfigAbility.tauntOneTimeUse.Value,
+                _ => this.oneTimeUse,
+            };
+            return isOneTimeUse && this.usedThisRound;
+        }
+
+        /// <summary>
+        /// Check the ability was on cooldown.
+        /// </summary>
+        /// <param name="ability"></param>
+        /// <returns> [bool] If the ability was in cooldown</returns>
+        public bool IsAbilityOnCooldown()
+        {
+            float timeFromLastUse = this.abilityName switch
+            {
+                "Taunt" => Time.time - this.lastUsed,
+                _ => Time.time - this.lastUsed,
+            };
+            return timeFromLastUse <= this.abilityDelay;
+        }
+
+        /// <summary>
+        /// Check the ability requires round active to be buyed.
+        /// </summary>
+        /// <param name="ability"></param>
+        /// <returns> [bool] If he was only aviable on a round.</returns>
+        public bool IsAbilityOnRoundOnly()
+        {
+            return this.abilityName switch
+            {
+                "Taunt" => ConfigAbility.tauntOnRoundActivation.Value,
+                _ => this.requiresRoundActive,
+            };
+        }
+
+        /// <summary>
+        /// Check the ability requires the seekers to be active to be buyed.
+        /// </summary>
+        /// <param name="ability"></param>
+        /// <returns> [bool] Aviability of the ability</returns>
+        public bool IsAbilityWhenSeekerActive()
+        {
+            bool needSeekerActive = this.abilityName switch
+            {
+                "Taunt" => ConfigAbility.tauntWhenSeekerInside.Value,
+                _ => this.requiresSeekerActive,
+            };
+            return needSeekerActive && TimeOfDay.Instance.currentDayTime <= Config.timeSeekerIsReleased.Value;
+        }
+
+        /// <summary>
+        /// Check the ability requires the seekers to be active to be buyed.
+        /// </summary>
+        /// <param name="ability"></param>
+        /// <returns>[int] Cost of the ability</returns>
+        public int GetAbilityCost()
+        {
+            return this.abilityName switch
+            {
+                "Taunt" => ConfigAbility.tauntCost.Value,
+                _ => this.abilityCost,
+            };
+        }
+        #endregion
     }
 }

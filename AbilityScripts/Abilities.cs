@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using Unity.Netcode;
 using UnityEngine;
+using static UnityEngine.UIElements.StylePropertyAnimationSystem;
 using Debug = Debugger.Debug;
 
 namespace HideAndSeek.AbilityScripts
@@ -1207,6 +1208,35 @@ namespace HideAndSeek.AbilityScripts
                 }
             }
         }
+
+        /// <summary>
+        /// Get requiresSeekerActive.
+        /// </summary>
+        /// <param name="ability"></param>
+        /// <returns></returns>
+        public static bool IsAbilitySeekerActive(AbilityBase ability)
+        {
+            return ability.abilityName switch
+            {
+                "Taunt" => ConfigAbility.tauntWhenSeekerInside.Value,
+                _ => ability.requiresSeekerActive,
+            };
+        }
+
+        /// <summary>
+        /// Get oneTimeUse.
+        /// </summary>
+        /// <param name="ability"></param>
+        /// <returns></returns>
+        public static bool IsAbilityOneTimeUse(AbilityBase ability)
+        {
+            return ability.abilityName switch
+            {
+                "Taunt" => ConfigAbility.tauntOneTimeUse.Value,
+                _ => ability.oneTimeUse,
+            };
+        }
+
         public static AbilityConfig AbilityToCfg(AbilityBase ability)
         {
             return new(ability.abilityName,
@@ -1226,6 +1256,30 @@ namespace HideAndSeek.AbilityScripts
 
             return ability;
         }
+
+        /// <summary>
+        /// Get infos from the config file
+        /// </summary>
+        /// <param name="ability"></param>
+        /// <param name="cfg"></param>
+        /// <returns></returns>
+        public static AbilityBase ApplyCfgToAbility(AbilityBase ability)
+        {
+            switch (ability.abilityName)
+            {
+                case "Taunt":
+                    ability.abilityCost = ConfigAbility.tauntCost.Value;
+                    ability.abilityDelay = ConfigAbility.tauntDelay.Value;
+                    ability.oneTimeUse = ConfigAbility.tauntOneTimeUse.Value;
+                    ability.seekerAbility = ConfigAbility.tauntForSeekers.Value;
+                    ability.hiderAbility = ConfigAbility.tauntForHiders.Value;
+                    ability.requiresRoundActive = ConfigAbility.tauntOnRoundActivation.Value;
+                    ability.requiresSeekerActive = ConfigAbility.tauntWhenSeekerInside.Value;
+                    break;
+            }
+            return ability;
+        }
+
         public static string AbilityCfgToData(AbilityConfig aCfg, bool format = true)
         {
             string data = string.Empty;

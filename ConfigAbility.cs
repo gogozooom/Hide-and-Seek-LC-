@@ -9,6 +9,25 @@ namespace HideAndSeek
 {
     public class ConfigAbility
     {
+        // Money
+        public static ConfigEntry<int> moneyCost;
+        public static ConfigEntry<bool> moneyForSeekers;
+        public static ConfigEntry<bool> moneyForHiders;
+        public static ConfigEntry<bool> moneyOnRoundActivation;
+        public static ConfigEntry<bool> moneyWhenSeekerInside;
+        public static ConfigEntry<float> moneyDelay;
+        public static ConfigEntry<bool> moneyOneTimeUse;
+
+        // Remote
+        public static ConfigEntry<int> remoteCost;
+        public static ConfigEntry<bool> remoteForSeekers;
+        public static ConfigEntry<bool> remoteForHiders;
+        public static ConfigEntry<bool> remoteOnRoundActivation;
+        public static ConfigEntry<bool> remoteWhenSeekerInside;
+        public static ConfigEntry<float> remoteDelay;
+        public static ConfigEntry<bool> remoteOneTimeUse;
+
+
         // Taunt
         public static ConfigEntry<int> tauntCost;
         public static ConfigEntry<bool> tauntForSeekers;
@@ -108,6 +127,15 @@ namespace HideAndSeek
         public static ConfigEntry<float> swapDelay;
         public static ConfigEntry<bool> swapOneTimeUse;
 
+        // Decoy
+        public static ConfigEntry<int> decoyCost;
+        public static ConfigEntry<bool> decoyForSeekers;
+        public static ConfigEntry<bool> decoyForHiders;
+        public static ConfigEntry<bool> decoyOnRoundActivation;
+        public static ConfigEntry<bool> decoyWhenSeekerInside;
+        public static ConfigEntry<float> decoyDelay;
+        public static ConfigEntry<bool> decoyOneTimeUse;
+
         // Stealth
         public static ConfigEntry<int> stealthCost;
         public static ConfigEntry<bool> stealthForSeekers;
@@ -200,6 +228,94 @@ namespace HideAndSeek
 
         public ConfigAbility(ConfigFile cfg) 
         {
+            #region Money
+            moneyCost = cfg.Bind<int>(
+                "Money Ability",
+                "MoneyCost",
+                0,
+                "The cost of that ability."
+            );
+            moneyDelay = cfg.Bind<float>(
+                "Money Ability",
+                "MoneyDelay",
+                0,
+                "The delay between uses of that ability (In seconds)."
+            );
+            moneyForSeekers = cfg.Bind<bool>(
+                "Money Ability",
+                "MoneyForSeekers",
+                false,
+                "Is that ability can be use by the seekers ?"
+            );
+            moneyForHiders = cfg.Bind<bool>(
+                "Money Ability",
+                "MoneyForHiders",
+                false,
+                "Is that ability can be use by the seekers ?"
+            );
+            moneyOnRoundActivation = cfg.Bind<bool>(
+                "Money Ability",
+                "MoneyOnRoundActivation",
+                false,
+                "Can the ability only be used in one round?"
+            );
+            moneyWhenSeekerInside = cfg.Bind<bool>(
+                "Money Ability",
+                "MoneyWhenSeekerInside",
+                false,
+                "Can the ability only be used when the seekers was ready to seek?"
+            );
+            moneyOneTimeUse = cfg.Bind<bool>(
+                "Money Ability",
+                "MoneyOneTimeUse",
+                false,
+                "Can the ability only be used one time?"
+            );
+            #endregion
+            #region Remote
+            remoteCost = cfg.Bind<int>(
+                "Remote Ability",
+                "RemoteCost",
+                200,
+                "The cost of that ability."
+            );
+            remoteDelay = cfg.Bind<float>(
+                "Remote Ability",
+                "RemoteDelay",
+                25,
+                "The delay between uses of that ability (In seconds)."
+            );
+            remoteForSeekers = cfg.Bind<bool>(
+                "Remote Ability",
+                "RemoteForSeekers",
+                false,
+                "Is that ability can be use by the seekers ?"
+            );
+            remoteForHiders = cfg.Bind<bool>(
+                "Remote Ability",
+                "RemoteForHiders",
+                true,
+                "Is that ability can be use by the seekers ?"
+            );
+            remoteOnRoundActivation = cfg.Bind<bool>(
+                "Remote Ability",
+                "RemoteOnRoundActivation",
+                true,
+                "Can the ability only be used in one round?"
+            );
+            remoteWhenSeekerInside = cfg.Bind<bool>(
+                "Remote Ability",
+                "RemoteWhenSeekerInside",
+                true,
+                "Can the ability only be used when the seekers was ready to seek?"
+            );
+            remoteOneTimeUse = cfg.Bind<bool>(
+                "Remote Ability",
+                "RemoteOneTimeUse",
+                false,
+                "Can the ability only be used one time?"
+            );
+            #endregion
             #region Taunt
             tauntCost = cfg.Bind<int>(
                 "Taunt Ability",
@@ -680,6 +796,50 @@ namespace HideAndSeek
             swapOneTimeUse = cfg.Bind<bool>(
                 "Swap Ability",
                 "SwapOneTimeUse",
+                false,
+                "Can the ability only be used one time?"
+            );
+            #endregion
+            #region Decoy
+            decoyCost = cfg.Bind<int>(
+                "Decoy Ability",
+                "DecoyCost",
+                0,
+                "The cost of that ability."
+            );
+            decoyDelay = cfg.Bind<float>(
+                "Decoy Ability",
+                "DecoyDelay",
+                120,
+                "The delay between uses of that ability (In seconds)."
+            );
+            decoyForSeekers = cfg.Bind<bool>(
+                "Decoy Ability",
+                "DecoyForSeekers",
+                false,
+                "Is that ability can be use by the seekers ?"
+            );
+            decoyForHiders = cfg.Bind<bool>(
+                "Decoy Ability",
+                "DecoyForHiders",
+                false,
+                "Is that ability can be use by the seekers ?"
+            );
+            decoyOnRoundActivation = cfg.Bind<bool>(
+                "Decoy Ability",
+                "DecoyOnRoundActivation",
+                false,
+                "Can the ability only be used in one round?"
+            );
+            decoyWhenSeekerInside = cfg.Bind<bool>(
+                "Decoy Ability",
+                "DecoyWhenSeekerInside",
+                false,
+                "Can the ability only be used when the seekers was ready to seek?"
+            );
+            decoyOneTimeUse = cfg.Bind<bool>(
+                "Decoy Ability",
+                "DecoyOneTimeUse",
                 false,
                 "Can the ability only be used one time?"
             );
