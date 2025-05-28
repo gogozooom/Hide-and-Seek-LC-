@@ -257,7 +257,7 @@ namespace HideAndSeek
                 "Money Ability",
                 "MoneyOnRoundActivation",
                 false,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             moneyWhenSeekerInside = cfg.Bind<bool>(
                 "Money Ability",
@@ -301,7 +301,7 @@ namespace HideAndSeek
                 "Remote Ability",
                 "RemoteOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             remoteWhenSeekerInside = cfg.Bind<bool>(
                 "Remote Ability",
@@ -345,7 +345,7 @@ namespace HideAndSeek
                 "Taunt Ability",
                 "TauntOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             tauntWhenSeekerInside = cfg.Bind<bool>(
                 "Taunt Ability",
@@ -389,7 +389,7 @@ namespace HideAndSeek
                 "Key Ability",
                 "KeyOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             keyWhenSeekerInside = cfg.Bind<bool>(
                 "Key Ability",
@@ -433,7 +433,7 @@ namespace HideAndSeek
                 "Tzp-Inhalant Ability",
                 "TzpInhalantOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             tzpInhalantWhenSeekerInside = cfg.Bind<bool>(
                 "Tzp-Inhalant Ability",
@@ -477,7 +477,7 @@ namespace HideAndSeek
                 "Shovel Ability",
                 "ShovelOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             shovelWhenSeekerInside = cfg.Bind<bool>(
                 "Shovel Ability",
@@ -521,7 +521,7 @@ namespace HideAndSeek
                 "Stun Grenade Ability",
                 "StunGrenadeOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             stunGrenadeWhenSeekerInside = cfg.Bind<bool>(
                 "Stun Grenade Ability",
@@ -565,7 +565,7 @@ namespace HideAndSeek
                 "Flashlight Ability",
                 "FlashlightOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             flashlightWhenSeekerInside = cfg.Bind<bool>(
                 "Flashlight Ability",
@@ -609,7 +609,7 @@ namespace HideAndSeek
                 "Laser Pointer Ability",
                 "LaserPointerOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             laserPointerWhenSeekerInside = cfg.Bind<bool>(
                 "Laser Pointer Ability",
@@ -653,7 +653,7 @@ namespace HideAndSeek
                 "Walkie Talkie Ability",
                 "WalkieTalkieOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             walkieTalkieWhenSeekerInside = cfg.Bind<bool>(
                 "Walkie Talkie Ability",
@@ -697,7 +697,7 @@ namespace HideAndSeek
                 "Critical Injury Ability",
                 "CriticalInjuryOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             criticalInjuryWhenSeekerInside = cfg.Bind<bool>(
                 "Critical Injury Ability",
@@ -741,7 +741,7 @@ namespace HideAndSeek
                 "Teleport Ability",
                 "TeleportOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             teleportWhenSeekerInside = cfg.Bind<bool>(
                 "Teleport Ability",
@@ -785,7 +785,7 @@ namespace HideAndSeek
                 "Swap Ability",
                 "SwapOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             swapWhenSeekerInside = cfg.Bind<bool>(
                 "Swap Ability",
@@ -829,7 +829,7 @@ namespace HideAndSeek
                 "Decoy Ability",
                 "DecoyOnRoundActivation",
                 false,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             decoyWhenSeekerInside = cfg.Bind<bool>(
                 "Decoy Ability",
@@ -873,7 +873,7 @@ namespace HideAndSeek
                 "Stealth Ability",
                 "StealthOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             stealthWhenSeekerInside = cfg.Bind<bool>(
                 "Stealth Ability",
@@ -917,7 +917,7 @@ namespace HideAndSeek
                 "Long Stealth Ability",
                 "LongStealthOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             longStealthWhenSeekerInside = cfg.Bind<bool>(
                 "Long Stealth Ability",
@@ -961,7 +961,7 @@ namespace HideAndSeek
                 "Invisibility Ability",
                 "InvisibilityOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             invisibilityWhenSeekerInside = cfg.Bind<bool>(
                 "Invisibility Ability",
@@ -1005,7 +1005,7 @@ namespace HideAndSeek
                 "Spawn Loot Bug Ability",
                 "LootBugOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             lootBugWhenSeekerInside = cfg.Bind<bool>(
                 "Spawn Loot Bug Ability",
@@ -1049,7 +1049,7 @@ namespace HideAndSeek
                 "Spawn Mimic Ability",
                 "MimicOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             mimicWhenSeekerInside = cfg.Bind<bool>(
                 "Spawn Mimic Ability",
@@ -1093,7 +1093,7 @@ namespace HideAndSeek
                 "Spawn Thumper Ability",
                 "ThumperOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             thumperWhenSeekerInside = cfg.Bind<bool>(
                 "Spawn Thumper Ability",
@@ -1137,7 +1137,7 @@ namespace HideAndSeek
                 "Spawn Bracken Ability",
                 "BrackenOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             brackenWhenSeekerInside = cfg.Bind<bool>(
                 "Spawn Bracken Ability",
@@ -1181,7 +1181,7 @@ namespace HideAndSeek
                 "Spawn Turret Ability",
                 "TurretOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             turretWhenSeekerInside = cfg.Bind<bool>(
                 "Spawn Turret Ability",
@@ -1225,7 +1225,7 @@ namespace HideAndSeek
                 "Spawn Landmine Ability",
                 "LandmineOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             landmineWhenSeekerInside = cfg.Bind<bool>(
                 "Spawn Landmine Ability",
@@ -1269,7 +1269,7 @@ namespace HideAndSeek
                 "Heat Seeking Ability",
                 "HeatSeekingOnRoundActivation",
                 true,
-                "Can the ability only be used in one round?"
+                "Can the ability only be used in a round?"
             );
             heatSeekingWhenSeekerInside = cfg.Bind<bool>(
                 "Heat Seeking Ability",

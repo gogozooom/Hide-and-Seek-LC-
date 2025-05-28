@@ -11,8 +11,8 @@ Features:
 	- New items on abilitys :
 	#ADDED											- Laser pointer
 
-	- More customisable options on the config files
-	                 - ConfigAbility Already done, integrate in the code, replace the old system.
+	# IN PROGRESS - More customisable options on the config files
+	- Language port ? (French port to start)
 	- Seeing the seekers on the screens too (Replace Quota, it's usless now.)
 	                 - Seekers names around the line 695 on patcher .cs.
 					 - To get the screen, maybe try search how the ship door has his properties modified to 

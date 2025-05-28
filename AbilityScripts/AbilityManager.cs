@@ -103,28 +103,25 @@ namespace HideAndSeek.AbilityScripts
             if (ability != null)
             {
                 // Valid check
-
-                bool isSeeker = Plugin.seekers.Contains(player);
-
-                if (ability.abilityCost > playerAbilities.money)
+                if (ability.GetAbilityCost() > playerAbilities.money)
                 {
-                    Debug.Log($"[Server] Could not pass value check! AbilityCost: '{ability.abilityCost}'");
+                    Debug.Log($"[Server] Could not pass value check! AbilityCost: '{ability.GetAbilityCost()}'");
                     return;
                 }
 
-                if (!(ability.seekerAbility && isSeeker || ability.hiderAbility && !isSeeker)) // If neither are true
+                if (!ability.IsAbilityAviableForRole(Plugin.seekers.Contains(player))) // If neither are true
                 {
                     Debug.Log($"[Server] Could not pass proper ability user check! AbilityName: '{ability.abilityName}'");
                     return;
                 }
 
-                if (ability.requiresRoundActive && !StartOfRound.Instance.shipHasLanded)
+                if (ability.IsAbilityOnRoundOnly() && !StartOfRound.Instance.shipHasLanded)
                 {
                     Debug.Log($"[Server] Could not pass requiersRoundActive check! AbilityName: '{ability.abilityName}'");
                     return;
                 }
 
-                if (ability.requiresSeekerActive && TimeOfDay.Instance.currentDayTime <= Config.timeSeekerIsReleased.Value)
+                if (ability.IsAbilityWhenSeekerActive())
                 {
                     Debug.Log($"[Server] Could not pass requiersRoundActive check! AbilityName: '{ability.abilityName}'");
                     return;
@@ -132,9 +129,9 @@ namespace HideAndSeek.AbilityScripts
 
                 // Passed All Checks!
 
-                Debug.Log($"[Server] Passed local checks! AbilityCost: '{ability.abilityCost}'");
+                Debug.Log($"[Server] Passed local checks! AbilityCost: '{ability.GetAbilityCost()}'");
 
-                NetworkHandler.Instance.EventSendRpc(".moneyChanged", new MessageProperties(__int: -ability.abilityCost, __ulong: playerId));
+                NetworkHandler.Instance.EventSendRpc(".moneyChanged", new MessageProperties(__int: -ability.GetAbilityCost(), __ulong: playerId));
 
                 ability.ActivateServer(playerId);
             }

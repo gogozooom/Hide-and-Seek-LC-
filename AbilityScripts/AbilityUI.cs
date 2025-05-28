@@ -123,7 +123,7 @@ namespace HideAndSeek.AbilityScripts
 
             Debug.LogWarning("Reading Config!");
 
-            Abilities.ReadConfigFile();
+            ConfigManager.ReadConfigFile(Abilities.abilities);
 
             StartCoroutine(Initalize());
         }
@@ -580,32 +580,14 @@ namespace HideAndSeek.AbilityScripts
             if (roundStarted)
             {
                 List<string> newAbilities = new();
-
-                if (Plugin.seekers.Contains(attachedPlayer))
+                foreach (var aName in abilities)
                 {
-                    foreach (var aName in abilities)
+                    AbilityBase ab = ConfigManager.FindAbilityByName(Abilities.abilities, aName);
+                    if (ab.IsAbilityAviableForRole(Plugin.seekers.Contains(attachedPlayer)))
                     {
-                        AbilityBase ab = Abilities.FindAbilityByName(aName);
-
-                        if (ab.seekerAbility)
-                        {
-                            newAbilities.Add(aName);
-                        }
+                        newAbilities.Add(aName);
                     }
                 }
-                else
-                {
-                    foreach (var aName in abilities)
-                    {
-                        AbilityBase ab = Abilities.FindAbilityByName(aName);
-
-                        if (ab.hiderAbility)
-                        {
-                            newAbilities.Add(aName);
-                        }
-                    }
-                }
-
                 return newAbilities;
             }
             else
@@ -934,7 +916,7 @@ namespace HideAndSeek.AbilityScripts
 
             if (selectedAbilities.Count != 0 && selectedAbilities.Count > index)
             {
-                foundAbility = Abilities.FindAbilityByName(selectedAbilities[index]);
+                foundAbility = ConfigManager.FindAbilityByName(Abilities.abilities, selectedAbilities[index]);
             }
 
             return foundAbility;
@@ -1030,12 +1012,11 @@ namespace HideAndSeek.AbilityScripts
                 return;
             }
 
-            bool isSeeker = Plugin.seekers.Contains(attachedPlayer);
-            if (!(selectedAbility.seekerAbility && isSeeker || selectedAbility.hiderAbility && !isSeeker) || // Not your ability type
-                (selectedAbility.oneTimeUse && selectedAbility.usedThisRound) || // Already Used This Round
-                (Time.time - selectedAbility.lastUsed <= selectedAbility.abilityDelay) || // On Cooldown
-                selectedAbility.requiresRoundActive && !RoundManagerPatch.IsRoundActive() || // Requires Round Active
-                selectedAbility.requiresSeekerActive && TimeOfDay.Instance.currentDayTime <= Config.timeSeekerIsReleased.Value) // Requires Seeker Active 
+            if (!selectedAbility.IsAbilityAviableForRole(Plugin.seekers.Contains(attachedPlayer)) || // Not your ability type
+                selectedAbility.IsAbilityConsumed() || // Already Used This Round
+                selectedAbility.IsAbilityOnCooldown() || // On Cooldown
+                selectedAbility.IsAbilityOnRoundOnly() && !RoundManagerPatch.IsRoundActive() || // Requires Round Active
+                selectedAbility.IsAbilityWhenSeekerActive()) // Requires Seeker Active 
             {
                 titleDescriptionUI.color = Color.red;
                 titleUI.color = Color.red;
@@ -1046,7 +1027,7 @@ namespace HideAndSeek.AbilityScripts
                 titleUI.color = Color.green;
             }
 
-            if (selectedAbility.abilityCost > attachedAbilityInstance.money)
+            if (selectedAbility.GetAbilityCost() > attachedAbilityInstance.money)
             {
                 costUI.color = Color.red;
             }
