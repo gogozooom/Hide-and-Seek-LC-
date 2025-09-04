@@ -207,7 +207,7 @@ namespace HideAndSeek.Patches
 
             Debug.LogMessage($"Got Buy Ability Brodcast! Ability name '{mProps._string}' From player id '{mProps._ulong}'");
             
-            AbilityManager.BuyAbilityServer(mProps._ulong, Abilities.FindAbilityByName(mProps._string));
+            AbilityManager.BuyAbilityServer(mProps._ulong, ConfigManager.FindAbilityByName(Abilities.abilities, mProps._string));
         }
         public static void ActivateAbility(string eventName, MessageProperties mProps)
         {
@@ -215,7 +215,7 @@ namespace HideAndSeek.Patches
 
             Debug.LogMessage($"Got Activate Abilty Brodcast! Ability name '{mProps._string}' From player id '{mProps._ulong}' Extra info '{mProps._extraMessage}'");
 
-            AbilityBase Ability = Abilities.FindAbilityByName(mProps._string);
+            AbilityBase Ability = ConfigManager.FindAbilityByName(Abilities.abilities, mProps._string);
 
             if (Ability != null)
             {
@@ -278,16 +278,16 @@ namespace HideAndSeek.Patches
 
             if (mProps._string != "")
             {
-                AbilityConfig cfg = Abilities.FindAbilityConfigByName(mProps._string, true);
+                AbilityConfig cfg = ConfigManager.FindAbilityConfigByName(Abilities.abilities, mProps._string, true);
 
                 if (cfg == null) return;
-                NetworkHandler.Instance.EventSendRpc(".receiveAbilityConfig", new(__ulong: mProps._ulong, __extraMessage: Abilities.AbilityCfgToData(cfg, false)));
+                NetworkHandler.Instance.EventSendRpc(".receiveAbilityConfig", new(__ulong: mProps._ulong, __extraMessage: ConfigManager.OldAbilityCfgToData(cfg, false)));
             }
             else
             {
                 foreach (var cfg in Abilities.abilityConfigs)
                 {
-                    NetworkHandler.Instance.EventSendRpc(".receiveAbilityConfig", new(__ulong: mProps._ulong, __extraMessage:Abilities.AbilityCfgToData(cfg, false)));
+                    NetworkHandler.Instance.EventSendRpc(".receiveAbilityConfig", new(__ulong: mProps._ulong, __extraMessage: ConfigManager.OldAbilityCfgToData(cfg, false)));
                 }
             }
 
@@ -300,7 +300,7 @@ namespace HideAndSeek.Patches
 
             Debug.Log($"Data = '{mProps._extraMessage}'");
 
-            Abilities.LoadAbilityConfig(Abilities.ADataToCfg(mProps._extraMessage));
+            Abilities.LoadAbilityConfig(ConfigManager.OldADataToCfg(Abilities.abilities, mProps._extraMessage));
         }
         public static void RevivePlayerLocal(string eventName, MessageProperties mProps)
         {

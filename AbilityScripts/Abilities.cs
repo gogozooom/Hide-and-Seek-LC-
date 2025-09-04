@@ -1,4 +1,5 @@
 ﻿using GameNetcodeStuff;
+using HideAndSeek.AbilityScripts.Enums;
 using HideAndSeek.AbilityScripts.Extra;
 using HideAndSeek.AudioScripts;
 using HideAndSeek.Patches;
@@ -8,13 +9,14 @@ using System.Collections.Generic;
 using System.IO;
 using Unity.Netcode;
 using UnityEngine;
+using static UnityEngine.UIElements.StylePropertyAnimationSystem;
 using Debug = Debugger.Debug;
 
 namespace HideAndSeek.AbilityScripts
 {
     public static class Abilities
     {
-        public static List<AbilityBase> abilities = new List<AbilityBase>
+        public static List<AbilityBase> oldAbilities = new List<AbilityBase>
         {
             new AbilityBase(_abilityName:"Money", _abilityDescription:"Give everyone 9999 money!", _abilityCategory: "HIDDEN",
                 _abilityCost:0, _abilityDelay:0f, _requriesRoundActive: false, _requiresSeekerActive: false,
@@ -26,7 +28,7 @@ namespace HideAndSeek.AbilityScripts
                 _serverEvent:SpawnRemoteServerEvent),
 
             new AbilityBase(_abilityName:"Taunt", _abilityDescription:"Let out a little somthin!... You might even get a reward!",
-                _abilityDelay:25f, _abilityCost:0, 
+                _abilityDelay:25, _abilityCost:0,
                 _seekerAbility:false,
                 _serverEvent:TauntServerEvent, _clientEvent:TauntClientEvent),
 
@@ -56,6 +58,11 @@ namespace HideAndSeek.AbilityScripts
                 _oneTimeUse: true, _abilityCost:0,
                 _requiresSeekerActive:false,
                 _serverEvent:SpawnFlashlightServerEvent),
+
+            new AbilityBase(_abilityName:"Laser Pointer", _abilityDescription:"Gives you a Laser Pointer! Usefull for scaring friends, or use it for a custom usage if another mod allow it.", _abilityCategory:"Item",
+                _oneTimeUse: true, _abilityCost:300,
+                _requiresSeekerActive:false,
+                _serverEvent:SpawnLaserPointerServerEvent),
 
             new AbilityBase(_abilityName:"Walkie-talkie", _abilityDescription:"Wanna talk to your teammates? Have a free walkie-talkie once per round!", _abilityCategory:"Item",
                 _oneTimeUse: true, _abilityCost:0,
@@ -127,7 +134,155 @@ namespace HideAndSeek.AbilityScripts
                 _serverEvent:HeatSeekingServerEvent, _clientEvent:HeatSeekingClientEvent,
                 _abilityCost:999,
                 _oneTimeUse: true, _hiderAbility:false),
-        }; 
+        };
+
+        public static List<AbilityBase> abilities = new List<AbilityBase>
+        {
+            new AbilityBase(EnumAbilitys.Money, "Give everyone 9999 money!",
+                EnumAbilityCategory.HIDDEN.ToString(),
+                ConfigAbility.moneyCost.Value, ConfigAbility.moneyDelay.Value, ConfigAbility.moneyOneTimeUse.Value,
+                ConfigAbility.moneyForSeekers.Value, ConfigAbility.moneyForHiders.Value, ConfigAbility.moneyOnRoundActivation.Value,
+                ConfigAbility.moneyWhenSeekerInside.Value, GiveMoneyServerEvent),
+
+            new AbilityBase(EnumAbilitys.Remote, "Gives you a remote! Not usefull unless you have you have a mod for it. (External Mod Recommended)",
+                EnumAbilityCategory.HIDDEN.ToString(),
+                ConfigAbility.remoteCost.Value, ConfigAbility.remoteDelay.Value, ConfigAbility.remoteOneTimeUse.Value,
+                ConfigAbility.remoteForSeekers.Value, ConfigAbility.remoteForHiders.Value, ConfigAbility.remoteOnRoundActivation.Value,
+                ConfigAbility.remoteWhenSeekerInside.Value, SpawnRemoteServerEvent),
+
+            new AbilityBase(EnumAbilitys.Taunt, "Let out a little somthin!... You might even get a reward!",
+                EnumAbilityCategory.Misc.ToString(),
+                ConfigAbility.tauntCost.Value, ConfigAbility.tauntDelay.Value, ConfigAbility.tauntOneTimeUse.Value,
+                ConfigAbility.tauntForSeekers.Value, ConfigAbility.tauntForHiders.Value, ConfigAbility.tauntOnRoundActivation.Value,
+                ConfigAbility.tauntWhenSeekerInside.Value, TauntServerEvent, TauntClientEvent),
+
+            new AbilityBase(EnumAbilitys.Key, "Gives you a key! Usefull for opening doors, or even, locking them... (External Mod Recommended)",
+                EnumAbilityCategory.Item.ToString(),
+                ConfigAbility.keyCost.Value, ConfigAbility.keyDelay.Value, ConfigAbility.keyOneTimeUse.Value,
+                ConfigAbility.keyForSeekers.Value, ConfigAbility.keyForHiders.Value, ConfigAbility.keyOnRoundActivation.Value,
+                ConfigAbility.keyWhenSeekerInside.Value, SpawnKeyServerEvent),
+
+            new AbilityBase(EnumAbilitys.TzpInhalant, "Gives you TZP Inhalant! Usefull for gaining some speed and sounding funny.",
+                EnumAbilityCategory.Item.ToString(),
+                ConfigAbility.tzpInhalantCost.Value, ConfigAbility.tzpInhalantDelay.Value, ConfigAbility.tzpInhalantOneTimeUse.Value,
+                ConfigAbility.tzpInhalantForSeekers.Value, ConfigAbility.tzpInhalantForHiders.Value, ConfigAbility.tzpInhalantOnRoundActivation.Value,
+                ConfigAbility.tzpInhalantWhenSeekerInside.Value, SpawnTZPServerEvent),
+
+            new AbilityBase(EnumAbilitys.Shovel, "Gives you a Shovel! Usefull for possibly killing the seeker! Or just trolling your team mates...",
+                EnumAbilityCategory.Item.ToString(),
+                ConfigAbility.shovelCost.Value, ConfigAbility.shovelDelay.Value, ConfigAbility.shovelOneTimeUse.Value,
+                ConfigAbility.shovelForSeekers.Value, ConfigAbility.shovelForHiders.Value, ConfigAbility.shovelOnRoundActivation.Value,
+                ConfigAbility.shovelWhenSeekerInside.Value, SpawnShovelServerEvent),
+
+            new AbilityBase(EnumAbilitys.StunGrenade, "Gives you a Stun Grenade! Usefull for blinding the seeker for an escape!",
+                EnumAbilityCategory.Item.ToString(),
+                ConfigAbility.stunGrenadeCost.Value, ConfigAbility.stunGrenadeDelay.Value, ConfigAbility.stunGrenadeOneTimeUse.Value,
+                ConfigAbility.stunGrenadeForSeekers.Value, ConfigAbility.stunGrenadeForHiders.Value, ConfigAbility.stunGrenadeOnRoundActivation.Value,
+                ConfigAbility.stunGrenadeWhenSeekerInside.Value, SpawnStunGServerEvent),
+
+            new AbilityBase(EnumAbilitys.Flashlight, "Lost your flashlight? No worries, have a free flashlight once per round!",
+                EnumAbilityCategory.Item.ToString(),
+                ConfigAbility.flashlightCost.Value, ConfigAbility.flashlightDelay.Value, ConfigAbility.flashlightOneTimeUse.Value,
+                ConfigAbility.flashlightForSeekers.Value, ConfigAbility.flashlightForHiders.Value, ConfigAbility.flashlightOnRoundActivation.Value,
+                ConfigAbility.flashlightWhenSeekerInside.Value, SpawnFlashlightServerEvent),
+
+            new AbilityBase(EnumAbilitys.LaserPointer, "Gives you a Laser Pointer! Usefull for scaring friends, or use it for a custom usage if another mod allow it.",
+                EnumAbilityCategory.Item.ToString(),
+                ConfigAbility.laserPointerCost.Value, ConfigAbility.laserPointerDelay.Value, ConfigAbility.laserPointerOneTimeUse.Value,
+                ConfigAbility.laserPointerForSeekers.Value, ConfigAbility.laserPointerForHiders.Value, ConfigAbility.laserPointerOnRoundActivation.Value,
+                ConfigAbility.laserPointerWhenSeekerInside.Value, SpawnLaserPointerServerEvent),
+
+            new AbilityBase(EnumAbilitys.WalkieTalkie, "Wanna talk to your teammates? Have a free walkie-talkie once per round!",
+                EnumAbilityCategory.Item.ToString(),
+                ConfigAbility.walkieTalkieCost.Value, ConfigAbility.walkieTalkieDelay.Value, ConfigAbility.walkieTalkieOneTimeUse.Value,
+                ConfigAbility.walkieTalkieForSeekers.Value, ConfigAbility.walkieTalkieForHiders.Value, ConfigAbility.walkieTalkieOnRoundActivation.Value,
+                ConfigAbility.walkieTalkieWhenSeekerInside.Value, SpawnWalkieServerEvent),
+
+            new AbilityBase(EnumAbilitys.CriticalInjury, "Haunts your nearest enemy, and if they don't react in time, their hp will be set to 1! Making them easily susceptible to death.",
+                EnumAbilityCategory.Offensive.ToString(),
+                ConfigAbility.criticalInjuryCost.Value, ConfigAbility.criticalInjuryDelay.Value, ConfigAbility.criticalInjuryOneTimeUse.Value,
+                ConfigAbility.criticalInjuryForSeekers.Value, ConfigAbility.criticalInjuryForHiders.Value, ConfigAbility.criticalInjuryOnRoundActivation.Value,
+                ConfigAbility.criticalInjuryWhenSeekerInside.Value, CriticalInjuryServerEvent, CriticalInjuryClientEvent),
+
+            new AbilityBase(EnumAbilitys.Teleport, "Teleport yourself to a random location! Good for getting out of sticky situations! WARNING: This ability has a 3 second startup! This means it will take 3 seconds after using the ability for you to get teleported!",
+                EnumAbilityCategory.Defensive.ToString(),
+                ConfigAbility.teleportCost.Value, ConfigAbility.teleportDelay.Value, ConfigAbility.teleportOneTimeUse.Value,
+                ConfigAbility.teleportForSeekers.Value, ConfigAbility.teleportForHiders.Value, ConfigAbility.teleportOnRoundActivation.Value,
+                ConfigAbility.teleportWhenSeekerInside.Value, TeleportServerEvent, TeleportClientEvent),
+
+            new AbilityBase(EnumAbilitys.Swap, "Swap locations with a random player! Good for getting a free hiding spot! I think... WARNING: This ability has a 3 second startup! This means it will take 3 seconds after using the ability for you to get teleported!",
+                EnumAbilityCategory.Defensive.ToString(),
+                ConfigAbility.swapCost.Value, ConfigAbility.swapDelay.Value, ConfigAbility.swapOneTimeUse.Value,
+                ConfigAbility.swapForSeekers.Value, ConfigAbility.swapForHiders.Value, ConfigAbility.swapOnRoundActivation.Value,
+                ConfigAbility.swapWhenSeekerInside.Value, SwapServerEvent, SwapClientEvent),
+
+            new AbilityBase(EnumAbilitys.Decoy, "Idk yet...",
+                EnumAbilityCategory.HIDDEN.ToString(),
+                ConfigAbility.decoyCost.Value, ConfigAbility.decoyDelay.Value, ConfigAbility.decoyOneTimeUse.Value,
+                ConfigAbility.decoyForSeekers.Value, ConfigAbility.decoyForHiders.Value, ConfigAbility.decoyOnRoundActivation.Value,
+                ConfigAbility.decoyWhenSeekerInside.Value, DecoyServerEvent, DecoyClientEvent), // Todo: Decoy ability - WIP
+
+            new AbilityBase(EnumAbilitys.Stealth, "Sneak past your enemies completely silently for 30 seconds!",
+                EnumAbilityCategory.Stealth.ToString(),
+                ConfigAbility.stealthCost.Value, ConfigAbility.stealthDelay.Value, ConfigAbility.stealthOneTimeUse.Value,
+                ConfigAbility.stealthForSeekers.Value, ConfigAbility.stealthForHiders.Value, ConfigAbility.stealthOnRoundActivation.Value,
+                ConfigAbility.stealthWhenSeekerInside.Value, StealthServerEvent, StealthClientEvent
+                ),
+
+            new AbilityBase(EnumAbilitys.LongStealth, "Sneak past your enemies completely silently!",
+                EnumAbilityCategory.Stealth.ToString(),
+                ConfigAbility.longStealthCost.Value, ConfigAbility.longStealthDelay.Value, ConfigAbility.longStealthOneTimeUse.Value,
+                ConfigAbility.longStealthForSeekers.Value, ConfigAbility.longStealthForHiders.Value, ConfigAbility.longStealthOnRoundActivation.Value,
+                ConfigAbility.longStealthWhenSeekerInside.Value, LongStealthServerEvent, StealthClientEvent),
+
+            new AbilityBase(EnumAbilitys.Invisibility, "Get the ultimate hiding spot in plain sight! Easly trick and sneek around the seeker! Lasts 30 seconds.",
+                EnumAbilityCategory.Stealth.ToString(),
+                ConfigAbility.invisibilityCost.Value, ConfigAbility.invisibilityDelay.Value, ConfigAbility.invisibilityOneTimeUse.Value,
+                ConfigAbility.invisibilityForSeekers.Value, ConfigAbility.invisibilityForHiders.Value, ConfigAbility.invisibilityOnRoundActivation.Value,
+                ConfigAbility.invisibilityWhenSeekerInside.Value, InvisibilityServerEvent, InvisibilityClientEvent),
+
+            new AbilityBase(EnumAbilitys.SpawnLootBug, "Spawns a little yippee fren! he will find items and put them right at your feet! What a good boi!",
+                EnumAbilityCategory.Spawn.ToString(),
+                ConfigAbility.lootBugCost.Value, ConfigAbility.lootBugDelay.Value, ConfigAbility.lootBugOneTimeUse.Value,
+                ConfigAbility.lootBugForSeekers.Value, ConfigAbility.lootBugForHiders.Value, ConfigAbility.lootBugOnRoundActivation.Value,
+                ConfigAbility.lootBugWhenSeekerInside.Value, SpawnLootBugServerEvent, SpawnClientEvent),
+
+            new AbilityBase(EnumAbilitys.SpawnMimic, "Spawns a mimic to help seek out those pesky hiders and multiply for effectiveness! Don't worry, he won't barf on you though!",
+                EnumAbilityCategory.Spawn.ToString(),
+                ConfigAbility.mimicCost.Value, ConfigAbility.mimicDelay.Value, ConfigAbility.mimicOneTimeUse.Value,
+                ConfigAbility.mimicForSeekers.Value, ConfigAbility.mimicForHiders.Value, ConfigAbility.mimicOnRoundActivation.Value,
+                ConfigAbility.mimicWhenSeekerInside.Value, SpawnMimicServerEvent, SpawnClientEvent),
+
+            new AbilityBase(EnumAbilitys.SpawnThumper, "Spawns a flipin' fast boi to quickly search the building and scare off the hiders! Don't worry, he doesn't bite you!",
+                EnumAbilityCategory.Spawn.ToString(),
+                ConfigAbility.thumperCost.Value, ConfigAbility.thumperDelay.Value, ConfigAbility.thumperOneTimeUse.Value,
+                ConfigAbility.thumperForSeekers.Value, ConfigAbility.thumperForHiders.Value, ConfigAbility.thumperOnRoundActivation.Value,
+                ConfigAbility.thumperWhenSeekerInside.Value, SpawnThumperServerEvent, SpawnClientEvent),
+
+            new AbilityBase(EnumAbilitys.SpawnBracken, "Spawns a bracken to help track those terrible hiders! Don't worry, he won't snap your neck~",
+                EnumAbilityCategory.Spawn.ToString(),
+                ConfigAbility.brackenCost.Value, ConfigAbility.brackenDelay.Value, ConfigAbility.brackenOneTimeUse.Value,
+                ConfigAbility.brackenForSeekers.Value, ConfigAbility.brackenForHiders.Value, ConfigAbility.brackenOnRoundActivation.Value,
+                ConfigAbility.brackenWhenSeekerInside.Value, SpawnBrackenServerEvent, SpawnClientEvent),
+
+            new AbilityBase(EnumAbilitys.SpawnTurret, "Catch the hiders off guard with perfect turret placement! for only for two-ninety-nine! Don't worry, it wont shoot you!",
+                EnumAbilityCategory.Spawn.ToString(),
+                ConfigAbility.turretCost.Value, ConfigAbility.turretDelay.Value, ConfigAbility.turretOneTimeUse.Value,
+                ConfigAbility.turretForSeekers.Value, ConfigAbility.turretForHiders.Value, ConfigAbility.turretOnRoundActivation.Value,
+                ConfigAbility.turretWhenSeekerInside.Value, SpawnTurretServerEvent, _clientEvent:SpawnClientEvent),
+
+            new AbilityBase(EnumAbilitys.SpawnLandmine, "Make the hiders go off with a BOOM! for only one-oh-nine! Don't worry, it wont detonate from your feet!",
+                EnumAbilityCategory.Spawn.ToString(),
+                ConfigAbility.landmineCost.Value, ConfigAbility.landmineDelay.Value, ConfigAbility.landmineOneTimeUse.Value,
+                ConfigAbility.landmineForSeekers.Value, ConfigAbility.landmineForHiders.Value, ConfigAbility.landmineOnRoundActivation.Value,
+                ConfigAbility.landmineWhenSeekerInside.Value, SpawnLandmineServerEvent, SpawnClientEvent),
+
+            new AbilityBase(EnumAbilitys.HeatSeeking, "The ultimate hider seeking device! For only nine-ninety-nine you can pinpoint the location of a random enemy, and get revenge for something they never did! NOTE: Your location will also be revealed to the target!",
+                EnumAbilityCategory.Offensive.ToString(),
+                ConfigAbility.heatSeekingCost.Value, ConfigAbility.heatSeekingDelay.Value, ConfigAbility.heatSeekingOneTimeUse.Value,
+                ConfigAbility.heatSeekingForSeekers.Value, ConfigAbility.heatSeekingForHiders.Value, ConfigAbility.heatSeekingOnRoundActivation.Value,
+                ConfigAbility.heatSeekingWhenSeekerInside.Value, HeatSeekingServerEvent, HeatSeekingClientEvent),
+        };
 
         public static List<AbilityConfig> abilityConfigs = new List<AbilityConfig>();
 
@@ -313,6 +468,10 @@ namespace HideAndSeek.AbilityScripts
         static void SpawnFlashlightServerEvent(AbilityBase ability, ulong activatorId)
         {
             RoundManagerPatch.SpawnNewItem("Flashlight", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
+        }
+        static void SpawnLaserPointerServerEvent(AbilityBase ability, ulong activatorId)
+        {
+            RoundManagerPatch.SpawnNewItem("Laser pointer", RoundManagerPatch.GetPlayerWithClientId(activatorId), true);
         }
         static void SpawnWalkieServerEvent(AbilityBase ability, ulong activatorId)
         {
@@ -894,7 +1053,7 @@ namespace HideAndSeek.AbilityScripts
             if (extraMessage == "Cancel")
             {
                 if (isLocalPlayer)
-                    Abilities.FindAbilityByName(ability.abilityName).usedThisRound = false;
+                    ConfigManager.FindAbilityByName(abilities, ability.abilityName).usedThisRound = false;
 
                 return;
             } else if (extraMessage == "Warn")
@@ -1081,72 +1240,6 @@ namespace HideAndSeek.AbilityScripts
         #endregion
 
         #region _FinderMethods_
-        public static AbilityBase FindAbilityByName(string name, bool raw = false)
-        {
-            AbilityBase ability = null;
-
-            foreach (var _ability in abilities)
-            {
-                if (_ability.abilityName.Equals(name, System.StringComparison.CurrentCultureIgnoreCase))
-                {
-                    ability = _ability;
-                    break;
-                }
-            }
-
-            if (ability == null) Debug.LogWarning($"FindAbilityByName:'{name}' Could not find ability!");
-            else
-            {
-                if (!raw)
-                {
-                    AbilityConfig cfg = FindAbilityConfigByName(name);
-
-                    if (cfg != null)
-                    {
-                        if (cfg.syncedWithHost || GameNetworkManager.Instance.isHostingGame)
-                        {
-                            ability = ApplyCfgToAbility(ability, cfg);
-                        }
-                    }
-                }
-            }
-
-            return ability;
-        }
-        public static AbilityConfig FindAbilityConfigByName(string name, bool check = false)
-        {
-            AbilityConfig abilityCfg = null;
-            AbilityBase ability = FindAbilityByName(name, true);
-
-            if (ability == null) { return null; }
-
-            foreach (var _ability in abilityConfigs)
-            {
-                if (_ability.abilityName.Equals(name.Trim(), System.StringComparison.CurrentCultureIgnoreCase))
-                {
-                    abilityCfg = _ability;
-                    break;
-                }
-            }
-
-            if (abilityCfg == null)
-            {
-                Debug.LogWarning($"FindAbilityConfigByName:'{name}' Could not find ability config!!");
-                if (GameNetworkManager.Instance.isHostingGame && !check)
-                {
-                    abilityConfigs.Add(AbilityToCfg(ability));
-                }
-                if (!GameNetworkManager.Instance.isHostingGame && GameNetworkManager.Instance?.localPlayerController != null && !check)
-                {
-                    // Client
-                    Debug.LogMessage("Attempting request...");
-
-                    NetworkHandler.Instance.EventSendRpc(".requestAbilityConfig", new(__ulong: GameNetworkManager.Instance.localPlayerController.actualClientId, __string: name));
-                }
-            }
-
-            return abilityCfg;
-        }
         public static bool AbilityExists(string name)
         {
             foreach (var _ability in abilities)
@@ -1183,206 +1276,8 @@ namespace HideAndSeek.AbilityScripts
             cfg.syncedWithHost = true;
             abilityConfigs.Add(cfg);
         }
-        #endregion
-
-        #region _OtherMethods_
-        public const string CFGfNAME = "Abilities.Cfg";
-        public static void AbilitiesToCfg()
-        {
-            abilityConfigs = new();
-            foreach (var ability in abilities)
-            {
-                if (ability.abilityCategory != "HIDDEN")
-                {
-                    abilityConfigs.Add(AbilityToCfg(ability));
-                }
-            }
-        }
-        public static AbilityConfig AbilityToCfg(AbilityBase ability)
-        {
-            return new(ability.abilityName,
-                                ability.abilityCost, ability.abilityDelay,
-                                ability.oneTimeUse, ability.seekerAbility,
-                                ability.hiderAbility, ability.requiresRoundActive, ability.requiresSeekerActive);
-        }
-        public static AbilityBase ApplyCfgToAbility(AbilityBase ability, AbilityConfig cfg)
-        {
-            ability.abilityCost = cfg.abilityCost;
-            ability.abilityDelay = cfg.abilityDelay;
-            ability.oneTimeUse = cfg.oneTimeUse;
-            ability.seekerAbility = cfg.seekerAbility;
-            ability.hiderAbility = cfg.hiderAbility;
-            ability.requiresRoundActive = cfg.requiresRoundActive;
-            ability.requiresSeekerActive = cfg.requiresSeekerActive;
-
-            return ability;
-        }
-        public static string AbilityCfgToData(AbilityConfig aCfg, bool format = true)
-        {
-            string data = string.Empty;
-            if (format)
-            {
-                data += aCfg.abilityName + " {\r\n" +
-                        $"\t{nameof(aCfg.abilityCost)} = {aCfg.abilityCost};\r\n" +
-                        $"\t{nameof(aCfg.seekerAbility)} = {aCfg.seekerAbility};\r\n" +
-                        $"\t{nameof(aCfg.hiderAbility)} = {aCfg.hiderAbility};\r\n" +
-                        $"\t{nameof(aCfg.requiresRoundActive)} = {aCfg.requiresRoundActive};\r\n" +
-                        $"\t{nameof(aCfg.requiresSeekerActive)} = {aCfg.requiresSeekerActive};\r\n" +
-                        $"\t{nameof(aCfg.abilityDelay)} = {aCfg.abilityDelay};\r\n" +
-                        $"\t{nameof(aCfg.oneTimeUse)} = {aCfg.oneTimeUse};\r\n" + "}";
-            }
-            else
-            {
-                data += aCfg.abilityName + "{" +
-                        $"{nameof(aCfg.abilityCost)}={aCfg.abilityCost};" +
-                        $"{nameof(aCfg.seekerAbility)}={aCfg.seekerAbility};" +
-                        $"{nameof(aCfg.hiderAbility)}={aCfg.hiderAbility};" +
-                        $"{nameof(aCfg.requiresRoundActive)}={aCfg.requiresRoundActive};" +
-                        $"{nameof(aCfg.requiresSeekerActive)}={aCfg.requiresSeekerActive};" +
-                        $"{nameof(aCfg.abilityDelay)}={aCfg.abilityDelay};" +
-                        $"{nameof(aCfg.oneTimeUse)}={aCfg.oneTimeUse};" + "}";
-            }
-            return data;
-        }
-        public static string AbilityCfgsToData(bool format = true)
-        {
-            if (abilityConfigs.Count <= 0) { Debug.LogError("Tried to ACfgToData but there is no ability config data!"); return null; }
-
-            string data = string.Empty;
-
-            foreach (var aCfg in abilityConfigs)
-            {
-                if (data != string.Empty && format)
-                {
-                    data += "\r\n";
-                }
-
-                data += AbilityCfgToData(aCfg, format);
-            }
-
-            return data;
-        }
-        public static AbilityConfig ADataToCfg(string d)
-        {
-            string[] s = d.Split("{");
-            string aName = s[0].Trim();
-            string data = s[1];
-
-            AbilityConfig aCfg = AbilityToCfg(FindAbilityByName(aName, true));
-
-            Debug.Log($"Reading Ability '{aName}'");
-
-            foreach (var item in data.Replace("}", "").Split(";"))
-            {
-                if (string.IsNullOrEmpty(item)) continue;
-
-                string name = item.Split("=")[0].Trim();
-                string value = item.Split("=")[1].Trim();
-
-                Debug.Log($"Reading Value '{name}' = '{value}'");
-
-                switch (name)
-                {
-                    case nameof(aCfg.abilityCost):
-                        aCfg.abilityCost = int.Parse(value);
-                        break;
-                    case nameof(aCfg.seekerAbility):
-                        aCfg.seekerAbility = bool.Parse(value);
-                        break;
-                    case nameof(aCfg.hiderAbility):
-                        aCfg.hiderAbility = bool.Parse(value);
-                        break;
-                    case nameof(aCfg.requiresRoundActive):
-                        aCfg.requiresRoundActive = bool.Parse(value);
-                        break;
-                    case nameof(aCfg.requiresSeekerActive):
-                        aCfg.requiresSeekerActive = bool.Parse(value);
-                        break;
-                    case nameof(aCfg.abilityDelay):
-                        aCfg.abilityDelay = float.Parse(value);
-                        break;
-                    case nameof(aCfg.oneTimeUse):
-                        aCfg.oneTimeUse = bool.Parse(value);
-                        break;
-                    default:
-                        Debug.LogError($"Could not read {name}!");
-                        break;
-                }
-            }
-            return aCfg;
-        }
-        public static List<AbilityConfig> ADataToCfgs(string data)
-        {
-            List<AbilityConfig> newACfgs = new();
-
-            Debug.LogWarning("_______ Cfg Input! \r\n" + data.Replace("\t", "").Replace("\r\n", ""));
-            foreach (var aCfgS in data.Replace("\t", "").Replace("\r\n", "").Split('}'))
-            {
-                if (string.IsNullOrEmpty(aCfgS)) continue;
-
-                var sCfData = ADataToCfg(aCfgS);
-
-                newACfgs.Add(sCfData);
-            }
-
-            return newACfgs;
-        }
-        public static void ReadConfigFile()
-        {
-            if (GameNetworkManager.Instance.isHostingGame)
-            {
-                var dllFolderPath = Path.GetDirectoryName(Plugin.instance.Info.Location);
-                var filePath = Path.Combine(dllFolderPath, CFGfNAME);
-
-                if (File.Exists(filePath))
-                {
-                    string data = File.ReadAllText(filePath);
-
-                    string version = data.Split("]")[0].Replace("[v", "");
-
-                    Debug.LogMessage($"Found File! {version}");
-                    if (version != Plugin.PLUGIN_VERSION)
-                    {
-                        Debug.LogError($"Config file version does not match the current version! cfg = 'v{version}' plugin = 'v{Plugin.PLUGIN_VERSION}' Making backup...");
-                        File.Move(filePath, Path.Combine(dllFolderPath, "v" + version + " - " + CFGfNAME));
-                        ReadConfigFile();
-                        return;
-                    }
-                    else
-                    {
-                        abilityConfigs = ADataToCfgs(data.Split("]")[1]);
-                    }
-                }
-                else
-                {
-                    AbilitiesToCfg();
-
-                    string data = $"[v{Plugin.PLUGIN_VERSION}]\r\n" + AbilityCfgsToData();
-
-                    Debug.LogWarning("______________ Got Data!: " + data);
-
-                    File.WriteAllText(filePath, data);
-                }
-            }
-            else
-            {
-                NetworkHandler.Instance.EventSendRpc(".requestAbilityConfig", new(__ulong:GameNetworkManager.Instance.localPlayerController.actualClientId));
-            }
-        }
-        public static void WriteConfigFile()
-        {
-            if (GameNetworkManager.Instance.isHostingGame)
-            {
-                var dllFolderPath = Path.GetDirectoryName(Plugin.instance.Info.Location);
-                var filePath = Path.Combine(dllFolderPath, CFGfNAME);
-
-                File.WriteAllText(filePath, AbilityCfgsToData());
-            }
-            else
-            {
-                Debug.LogWarning("Canceled writing config file because is not host!");
-            }
-        }
+       
+        
         #endregion
     }
 }

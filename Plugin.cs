@@ -12,6 +12,7 @@ using static BepInEx.BepInDependency;
 using System.Collections.Generic;
 using LCVR.Physics.Interactions;
 using System.IO;
+using BepInEx.Configuration;
 
 namespace HideAndSeek
 {
@@ -20,12 +21,13 @@ namespace HideAndSeek
     {
         public const string PLUGIN_GUID = "gogozooom.HideAndSeek";
         public const string PLUGIN_NAME = "Hide And Seek";
-        public const string PLUGIN_VERSION = "1.4.1";
+        public const string PLUGIN_VERSION = "1.4.3";
 
         // Instances
         public static ManualLogSource _Logger;
         public static Plugin instance;
         public static Config _Config;
+        public static ConfigAbility _ConfigAbility;
         public static List<PlayerControllerB> seekers = new();
         public static List<PlayerControllerB> zombies = new();
         public static AssetBundle networkHandlerBundle;
@@ -38,6 +40,7 @@ namespace HideAndSeek
             instance = this;
             _Logger = Logger;
             _Config = new(Config);
+            _ConfigAbility = new ConfigAbility(ConfigManager.GetConfigAbility());
 
             // Patches
             Debug.Log("Patching .RoundManagerPatch");
@@ -125,7 +128,7 @@ namespace Debugger
 {
     public static class Debug
     {
-        static bool warned = false;
+        static bool warned = true;
         readonly static string WARNmESSAGE = "DebugEnabled is false! (Make sure to turn this on when trying to read Debug.Log()'s messages)";
 
         public static void Log(object m)

@@ -1,11 +1,27 @@
-TODO:
+TODO ON Same_ExperimentingBranch:
 
 Bugs:
 
+- Lag Issue between 9 PM and 10 PM, Client sided
+- Dropping all item on sell and cant pick up again
+		- The two following problem might be from the HoarderBugAI, like Gogozooom says.
+
 Features:
 
-	DONE : Tutorial
+	- New items on abilitys :
+	#ADDED											- Laser pointer
 
-	Nahh bruh : Decoy ability
+	# IN PROGRESS - More customisable options on the config files
+	- Language port ? (French port to start)
+	- Seeing the seekers on the screens too (Replace Quota, it's usless now.)
+	                 - Seekers names around the line 695 on patcher .cs.
+					 - To get the screen, maybe try search how the ship door has his properties modified to 
+					   make seeker don't open the door. Door and Screen from ship, Ship class ?
+	- Outfit change by the role you are (Green suit = Hider, Yellow suit = Seeker) - (BONUS : Compatibility with more suits)
+	                 - Seekers id around the line 695 on patcher .cs.
+					 - Maybe from the "PlayerControllerB" ? Need to get the outfit equiped and set that on the start of a round.
+	# DONE											- Emblem compatibility for main menu logo (BONUS)
+	# DONE			                             	- LoadingScreen Compatibility (BONUS)
+	- RichPresence discord mod integration ? (BONUS)
 
 Removed:
