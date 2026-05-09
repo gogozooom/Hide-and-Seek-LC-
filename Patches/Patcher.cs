@@ -1,15 +1,11 @@
-﻿using BepInEx;
-using GameNetcodeStuff;
+﻿using GameNetcodeStuff;
 using HarmonyLib;
 using HideAndSeek.AbilityScripts;
 using HideAndSeek.AbilityScripts.Extra;
 using HideAndSeek.AudioScripts;
 using LCVR.Player;
-using LethalNetworkAPI;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Diagnostics;
 using Unity.Netcode;
 using UnityEngine;
 using Debug = Debugger.Debug;
@@ -3483,67 +3479,22 @@ namespace HideAndSeek.Patches
 
             return true;
         }
-        [HarmonyPatch("LandFromJumpClientRpc")]
+
+        [HarmonyPatch("PlayHitGroundAudio")]
         [HarmonyPrefix]
-        static bool LandFromJumpClientRpcPatch(ref PlayerControllerB __instance)
+        static bool PlayHitGroundAudioPatch(ref PlayerControllerB __instance)
         {
-            if (__instance?.GetComponent<AbilityInstance>()?.stealthActivated == true)
+            var abilityInstance = __instance.GetComponent<AbilityInstance>();
+
+            if (!abilityInstance) return true; // Continue
+
+            if (abilityInstance.stealthActivated)
+            {
                 return false;
+            }
 
             return true;
-        }
-        [HarmonyPatch("PlayerHitGroundEffects")]
-        [HarmonyPrefix]
-        static bool PlayerHitGroundEffectsPatch(ref PlayerControllerB __instance)
-        {
-            bool disabledJetpackControlsThisFrame = Traverse.Create(__instance).Field("disabledJetpackControlsThisFrame").GetValue<bool>();
-
-            __instance.GetCurrentMaterialStandingOn();
-            if (__instance.fallValue < -9f)
-            {
-                if (__instance.fallValue < -16f)
-                {
-                    __instance.movementAudio.PlayOneShot(StartOfRound.Instance.playerHitGroundHard, 1f);
-                    WalkieTalkie.TransmitOneShotAudio(__instance.movementAudio, StartOfRound.Instance.playerHitGroundHard, 1f);
-                }
-                else if (__instance.fallValue < -2f && __instance.GetComponent<AbilityInstance>()?.stealthActivated == false)
-                {
-                    __instance.movementAudio.PlayOneShot(StartOfRound.Instance.playerHitGroundSoft, 1f);
-                }
-                __instance.LandFromJumpServerRpc(__instance.fallValue < -16f);
-            }
-            float num = __instance.fallValueUncapped;
-            if (disabledJetpackControlsThisFrame && Vector3.Angle(__instance.transform.up, Vector3.up) > 80f)
-            {
-                num -= 10f;
-            }
-            if (__instance.takingFallDamage && !__instance.isSpeedCheating)
-            {
-                if (__instance.fallValueUncapped < -48.5f)
-                {
-                    __instance.DamagePlayer(100, true, true, CauseOfDeath.Gravity, 0, false, default(Vector3));
-                }
-                else if (__instance.fallValueUncapped < -45f)
-                {
-                    __instance.DamagePlayer(80, true, true, CauseOfDeath.Gravity, 0, false, default(Vector3));
-                }
-                else if (__instance.fallValueUncapped < -40f)
-                {
-                    __instance.DamagePlayer(50, true, true, CauseOfDeath.Gravity, 0, false, default(Vector3));
-                }
-                else if (__instance.fallValue < -38f)
-                {
-                    __instance.DamagePlayer(30, true, true, CauseOfDeath.Gravity, 0, false, default(Vector3));
-                }
-            }
-            if (__instance.fallValue < -16f)
-            {
-                RoundManager.Instance.PlayAudibleNoise(__instance.transform.position, 7f, 0.5f, 0, false, 0);
-            }
-
-            return false;
-        }
-        
+        }        
     }
 
     [HarmonyPatch(typeof(EntranceTeleport))]
