@@ -1,8 +1,6 @@
-﻿using BepInEx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using UnityEngine;
 using Debug = Debugger.Debug;
 

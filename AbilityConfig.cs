@@ -1,10 +1,4 @@
-﻿using BepInEx.Configuration;
-using HideAndSeek.AbilityScripts;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace HideAndSeek
+﻿namespace HideAndSeek
 {
     public class AbilityConfig
     {

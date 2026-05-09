@@ -1,7 +1,6 @@
 ﻿using GameNetcodeStuff;
 using HideAndSeek.Patches;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Debug = Debugger.Debug;
 

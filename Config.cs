@@ -1,5 +1,4 @@
 ﻿using BepInEx.Configuration;
-using Debugger;
 using LethalCompanyInputUtils.Api;
 using LethalCompanyInputUtils.BindingPathEnums;
 using UnityEngine;

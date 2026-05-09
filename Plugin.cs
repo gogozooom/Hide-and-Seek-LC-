@@ -8,10 +8,7 @@ using HideAndSeek.AudioScripts;
 using HideAndSeek.Patches;
 using UnityEngine;
 using Debug = Debugger.Debug;
-using static BepInEx.BepInDependency;
 using System.Collections.Generic;
-using LCVR.Physics.Interactions;
-using System.IO;
 
 namespace HideAndSeek
 {

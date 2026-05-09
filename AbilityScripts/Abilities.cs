@@ -2,7 +2,6 @@
 using HideAndSeek.AbilityScripts.Extra;
 using HideAndSeek.AudioScripts;
 using HideAndSeek.Patches;
-using LethalCompanyInputUtils.Config;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;

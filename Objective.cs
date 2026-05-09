@@ -2,9 +2,7 @@
 using HideAndSeek.Patches;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using UnityEngine;
-using static UnityEngine.InputSystem.LowLevel.InputStateHistory;
 
 namespace HideAndSeek
 {
