@@ -2,9 +2,24 @@ TODO:
 
 Bugs:
 
+	Critical injury not working on zombies
+
 Features:
 
-	DONE : Tutorial
+	Refactor!
+
+	"I am steve" Taunt
+	"GET OUT" Taunt
+
+	Seeker ignores weight and more stamina
+
+	
+
+	More default time to objective
+
+	Mark the exits when they are unlocked
+
+	Redo Taunt audio loading system to make custom sounds easily sharable
 
 	Nahh bruh : Decoy ability
 
