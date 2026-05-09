@@ -2,6 +2,7 @@ TODO:
 
 Bugs:
 
+	Broken Taunts
 	Critical injury not working on zombies
 
 Features:
