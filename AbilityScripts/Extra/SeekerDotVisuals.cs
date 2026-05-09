@@ -1,6 +1,5 @@
 ﻿using GameNetcodeStuff;
 using UnityEngine;
-using Debug = Debugger.Debug;
 
 namespace HideAndSeek.AbilityScripts.Extra
 {
