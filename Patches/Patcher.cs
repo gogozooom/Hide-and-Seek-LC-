@@ -6,6 +6,7 @@ using HideAndSeek.AudioScripts;
 using LCVR.Player;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using Debug = Debugger.Debug;
@@ -436,209 +437,35 @@ namespace HideAndSeek.Patches
                 NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__bool: true, __null: true));
 
             // -- Entitiy Removal --
-            // Daytime Enemies
-            foreach (var enemy in newLevel.DaytimeEnemies)
-            {
-                Debug.Log("Checking DaytimeEnemey: " + enemy.enemyType.enemyName);
 
-                if (Config.disableAllDaytimeEntities.Value)
+            var disabledEntities = Config.disabledEntities.Value.ToLower().Split(',').ToList();
+
+            List<SpawnableEnemyWithRarity> allEnemies =
+            [
+                .. newLevel.DaytimeEnemies,
+                .. newLevel.OutsideEnemies,
+                .. newLevel.Enemies,
+            ];
+
+            foreach (var enemy in allEnemies)
+            {
+                Debug.Log($"[{enemy.enemyType.enemyName}] Checking Enemy");
+
+                if (Config.disableAllEntities.Value)
                 {
-                    Debug.Log("DisableAllDaytimeEntities is true! " + enemy.enemyType.enemyName);
+                    Debug.Log($"[{enemy.enemyType.enemyName}] DisableAllIndoorEntities is true!");
                     enemy.rarity = 0;
                     continue;
                 }
 
-                switch (enemy.enemyType.enemyName)
+                if (disabledEntities.Contains(enemy.enemyType.enemyName.ToLower()))
                 {
-                    case ("Red Locust Bees"):
-                        if (!Config.circuitBeeEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Manticoil"):
-                        if (!Config.manticoilEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Docile Locust Bees"):
-                        if (!Config.roamingLocustEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                }
-
-                Debug.Log(enemy.enemyType.enemyName + ".Rarity = " + enemy.rarity);
-            }
-            // Outside Enemies
-            foreach (var enemy in newLevel.OutsideEnemies)
-            {
-                Debug.Log("Checking OutsideEnemey: " + enemy.enemyType.enemyName);
-
-                if (Config.disableAllOutsideEntities.Value)
-                {
-                    Debug.Log("DisableAllOutsideEntities is true! " + enemy.enemyType.enemyName);
+                    Debug.Log($"[{enemy.enemyType.enemyName}] Entity found in blacklist! Removing...");
                     enemy.rarity = 0;
                     continue;
                 }
 
-                switch (enemy.enemyType.enemyName)
-                {
-                    case ("MouthDog"):
-                        if (!Config.eyelessDogEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("ForestGiant"):
-                        if (!Config.forestKeeperEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Baboon hawk"):
-                        if (!Config.baboonHawkEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Earth Leviathan"):
-                        if (!Config.earthLeviathanEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("RadMech"):
-                        if (!Config.mechEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Tulip Snake"):
-                        if (!Config.tulipSnakeEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("BushWolf"):
-                        if (!Config.kidnapperFoxEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                }
-
-                Debug.Log(enemy.enemyType.enemyName + ".Rarity = " + enemy.rarity);
-            }
-            // Enemies
-            foreach (var enemy in newLevel.Enemies)
-            {
-                Debug.Log("Checking Enemey: " + enemy.enemyType.enemyName);
-
-                if (Config.disableAllIndoorEntities.Value)
-                {
-                    Debug.Log("DisableAllIndoorEntities is true! " + enemy.enemyType.enemyName);
-                    enemy.rarity = 0;
-                    continue;
-                }
-
-                switch (enemy.enemyType.enemyName)
-                {
-                    case ("Centipede"):
-                        if (!Config.snareFleaEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Bunker Spider"):
-                        if (!Config.bunkerSpiderEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Hoarding bug"):
-                        if (!Config.hoardingBugEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Flowerman"):
-                        if (!Config.brackenEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Crawler"):
-                        if (!Config.thumperEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Blob"):
-                        if (!Config.hygrodereEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Girl"):
-                        if (!Config.ghostGirlEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Puffer"):
-                        if (!Config.sporeLizardEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Nutcracker"):
-                        if (!Config.nutcrackerEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Jester"):
-                        if (!Config.jesterEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Spring"):
-                        if (!Config.coilHeadEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Masked"):
-                        if (!Config.maskedEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Butler"):
-                        if (!Config.butlerEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("Clay Surgeon"):
-                        if (!Config.barberEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                    case ("CaveDweller"):
-                        if (!Config.maneaterEnabled.Value)
-                        {
-                            enemy.rarity = 0;
-                        }
-                        break;
-                }
-
-                Debug.Log(enemy.enemyType.enemyName + ".Rarity = " + enemy.rarity);
+                Debug.Log($"{enemy.enemyType.enemyName}.Rarity = {enemy.rarity}");
             }
 
             // -- Hide And Seek --

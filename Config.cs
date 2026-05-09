@@ -23,42 +23,14 @@ namespace HideAndSeek
         public static ConfigEntry<Color> objectiveNameColor;
         public static ConfigEntry<bool> lockShipLever;
 
-        // Entities.Daytime
-        public static ConfigEntry<bool> disableAllDaytimeEntities;
-        public static ConfigEntry<bool> circuitBeeEnabled;
-        public static ConfigEntry<bool> manticoilEnabled;
-        public static ConfigEntry<bool> roamingLocustEnabled;
+        // Entities
+        public static ConfigEntry<bool> disableAllEntities;
+        public static ConfigEntry<string> disabledEntities;
 
-        // Entities.Outside
-        public static ConfigEntry<bool> disableAllOutsideEntities;
-        public static ConfigEntry<bool> baboonHawkEnabled;
-        public static ConfigEntry<bool> earthLeviathanEnabled;
-        public static ConfigEntry<bool> eyelessDogEnabled;
-        public static ConfigEntry<bool> forestKeeperEnabled;
-        public static ConfigEntry<bool> tulipSnakeEnabled;
-        public static ConfigEntry<bool> mechEnabled;
-        public static ConfigEntry<bool> kidnapperFoxEnabled;
-
-        // Entities.Indoor
-        public static ConfigEntry<bool> disableAllIndoorEntities;
-        public static ConfigEntry<bool> brackenEnabled;
-        public static ConfigEntry<bool> bunkerSpiderEnabled;
-        public static ConfigEntry<bool> coilHeadEnabled;
-        public static ConfigEntry<bool> ghostGirlEnabled;
-        public static ConfigEntry<bool> hoardingBugEnabled;
-        public static ConfigEntry<bool> hygrodereEnabled;
-        public static ConfigEntry<bool> jesterEnabled;
-        public static ConfigEntry<bool> maskedEnabled;
-        public static ConfigEntry<bool> nutcrackerEnabled;
-        public static ConfigEntry<bool> snareFleaEnabled;
-        public static ConfigEntry<bool> sporeLizardEnabled;
-        public static ConfigEntry<bool> thumperEnabled;
-        public static ConfigEntry<bool> butlerEnabled;
-        public static ConfigEntry<bool> barberEnabled;
+        // Traps
         public static ConfigEntry<bool> turretsEnabled;
         public static ConfigEntry<bool> landminesEnabled;
         public static ConfigEntry<bool> spikeTrapEnabled;
-        public static ConfigEntry<bool> maneaterEnabled;
 
         // Players.Seeker
         public static ConfigEntry<Color> seekerNameColor;
@@ -168,195 +140,36 @@ namespace HideAndSeek
             );
             #endregion
 
-            #region Entities.Daytime
-            disableAllDaytimeEntities = cfg.Bind(
-                "1:Entities.Daytime",
-                "Disable All Daytime Entities",
-                false,
-                "Determines if daytime spawning should be disabled. (Usefull for modded maps with unique enemies)"
-            );
-            circuitBeeEnabled = cfg.Bind(
-                "1:Entities.Daytime",
-                "Spawn Circut Bees",
-                false,
-                "Determines if Circuit Bees should spawn."
-            );
-            manticoilEnabled = cfg.Bind(
-                "1:Entities.Daytime",
-                "Spawn Manticoils",
+            #region Entities
+            disableAllEntities = cfg.Bind(
+                "1:Entities",
+                "Disable All Entities",
                 true,
-                "Determines if Manticoils should spawn."
+                "Determines if all entity spawning should be disabled."
             );
-            roamingLocustEnabled = cfg.Bind(
-                "1:Entities.Daytime",
-                "Spawn Roaming Locusts",
-                true,
-                "Determines if Roaming Locusts should spawn."
+            disabledEntities = cfg.Bind(
+                "1:Entities",
+                "Entity BlackList",
+                "",
+                "Enter an entity's internal name separated by commas to prevent them from spawning. (Entity's names can be found in console upon landing on a moon)"
             );
             #endregion
 
-            #region Entities.Outside
-            disableAllOutsideEntities = cfg.Bind(
-                "1:Entities.Outside",
-                "Disable All Outside Entities",
-                false,
-                "Determines if outside spawning should be disabled. (Usefull for modded maps with unique enemies)"
-            );
-            eyelessDogEnabled = cfg.Bind(
-                "1:Entities.Outside",
-                "Spawn Eyeless Dogs",
-                false,
-                "Determines if Eyeless Dogs should spawn."
-            );
-            forestKeeperEnabled = cfg.Bind(
-                "1:Entities.Outside",
-                "Spawn Forest Keepers",
-                false,
-                "Determines if Forest Keepers should spawn."
-            );
-            earthLeviathanEnabled = cfg.Bind(
-                "1:Entities.Outside",
-                "Spawn Earth Leviathans",
-                false,
-                "Determines if Earth Leviathans should spawn."
-            );
-            baboonHawkEnabled = cfg.Bind(
-                "1:Entities.Outside",
-                "Spawn Baboon Hawks",
-                false,
-                "Determines if Baboon Hawks should spawn."
-            );
-            tulipSnakeEnabled = cfg.Bind(
-                "1:Entities.Outside",
-                "Spawn Tulip Snakes",
-                false,
-                "Determines if Tulip Snakes should spawn."
-            );
-            mechEnabled = cfg.Bind(
-                "1:Entities.Outside",
-                "Spawn Old Bird",
-                false,
-                "Determines if Old Birds should spawn."
-            );
-            kidnapperFoxEnabled = cfg.Bind(
-                "1:Entities.Outside",
-                "Spawn Foxes",
-                false,
-                "Determines if Foxes should spawn."
-            );
-            #endregion
-
-            #region Entities.Indoor
-            disableAllIndoorEntities = cfg.Bind(
-                "1:Entities.Indoor",
-                "Disable All Indoor Entities",
-                false,
-                "Determines if indoor spawning should be disabled. (Usefull for modded maps with unique enemies)"
-            );
-            brackenEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Brackens",
-                false,
-                "Determines if Brackens should spawn."
-            );
-            bunkerSpiderEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Bunker Spiders",
-                false,
-                "Determines if Bunker Spiders should spawn."
-            );
-            coilHeadEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Coil Heads",
-                false,
-                "Determines if Coil Heads should spawn."
-            );
-            ghostGirlEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Ghost Girls",
-                false,
-                "Determines if Ghost Girls should spawn."
-            );
-            hoardingBugEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Hoarding Bugs",
-                false,
-                "Determines if Hoarding Bugs should spawn."
-            );
-            hygrodereEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Hygroderes (Slimes)",
-                false,
-                "Determines if Hygroderes (Slimes) should spawn."
-            );
-            jesterEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Jesters",
-                false,
-                "Determines if Jesters should spawn."
-            );
-            maskedEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Masked (Player Mimics)",
-                false,
-                "Determines if Masked (Player Mimics) should spawn."
-            );
-            nutcrackerEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Nutcrackers",
-                false,
-                "Determines if Nutcrackers should spawn."
-            );
-            snareFleaEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Snare Fleas",
-                false,
-                "Determines if Snare Fleas should spawn."
-            );
-            sporeLizardEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Spore Lizards",
-                false,
-                "Determines if Spore Lizards should spawn."
-            );
-            thumperEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Thumpers",
-                false,
-                "Determines if Thumpers should spawn."
-            );
-            butlerEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Butlers",
-                false,
-                "Determines if Butlers should spawn."
-            );
-            barberEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Barbers",
-                false,
-                "Determines if Barbers should spawn."
-            );
-            maneaterEnabled = cfg.Bind(
-                "1:Entities.Indoor",
-                "Spawn Maneaters",
-                false,
-                "Determines if Maneaters should spawn."
-            );
+            #region Traps
             turretsEnabled = cfg.Bind(
-                "1:Entities.Indoor",
+                "1:Traps",
                 "Spawn Turrets",
                 false,
                 "Determines if Turrets should spawn."
             );
             landminesEnabled = cfg.Bind(
-                "1:Entities.Indoor",
+                "1:Traps",
                 "Spawn Land Mines",
                 false,
                 "Determines if Land Mines should spawn."
             );
             spikeTrapEnabled = cfg.Bind(
-                "1:Entities.Indoor",
+                "1:Traps",
                 "Spawn Spike Traps",
                 false,
                 "Determines if Spike Traps should spawn."
