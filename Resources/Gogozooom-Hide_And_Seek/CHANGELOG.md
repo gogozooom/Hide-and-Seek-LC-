@@ -1,3 +1,9 @@
+## v1.5.0 Major update
+- Added:
+    - Support for v81!
+- Changed:
+    - A blacklist is now used to disable entities
+
 ## v1.4.0 Major update
 - Added:
     - Multiple Seekers!
