@@ -23,8 +23,7 @@ namespace HideAndSeek
         public static ManualLogSource _Logger;
         public static Plugin instance;
         public static Config _Config;
-        public static List<PlayerControllerB> seekers = new();
-        public static List<PlayerControllerB> zombies = new();
+
         public static AssetBundle networkHandlerBundle;
         public static AssetBundle abilityRadialMenuBundle;
         public static AssetBundle tutorialRadialMenuBundle;

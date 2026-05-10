@@ -1,5 +1,4 @@
 ﻿using GameNetcodeStuff;
-using HideAndSeek.Patches;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,13 +11,13 @@ public class SpawnAbilityInfo : MonoBehaviour
 
     void Start()
     {
-        PatchHelper.playerRevived += PlayerRevived;
+        HideAndSeekGM.instance.playerRevived += PlayerRevived;
     }
 
     void PlayerRevived(ulong id)
     {
         PlayerControllerB newZombie = HideAndSeekGM.instance.GetPlayerWithClientId(id);
-        if (Plugin.seekers.Contains(creatorPlayer))
+        if (HideAndSeekGM.instance.seekers.Contains(creatorPlayer))
         {
             // Creator is seeker
             if(!otherFriendlies.Contains(newZombie))

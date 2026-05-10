@@ -150,12 +150,9 @@ public static class Abilities
     #region Hidden
     static void GiveMoneyServerEvent(AbilityBase ability, ulong activatorId)
     {
-        foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+        foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("GiveMoneyServerEvent"))
         {
-            if (player.isPlayerControlled)
-            {
-                NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__int: 9999, __ulong:player.actualClientId));
-            }
+            NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__int: 9999, __ulong:player.actualClientId));
         }
     }
     #endregion
@@ -168,12 +165,11 @@ public static class Abilities
         ulong playerTarget = 10001;
 
         float closestPlayer = 10000f;
-        foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+        foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("CriticalInguryServerEvent"))
         {
-            if (!player.isPlayerControlled
-                || player.isPlayerDead
-                ||  Plugin.seekers.Contains(player) == Plugin.seekers.Contains(activatorPlayer) // Invalid Target | 'Plugin.seekers.Contains(player) == seekerUsedAbility' Is of my kind
-                || (Plugin.seekers.Contains(activatorPlayer) && Plugin.zombies.Contains(player))) continue; // Inavlid Target | Seeker dosen't target zombies!
+            if (player.isPlayerDead
+                || HideAndSeekGM.instance.seekers.Contains(player) == HideAndSeekGM.instance.seekers.Contains(activatorPlayer) // Invalid Target | 'Plugin.seekers.Contains(player) == seekerUsedAbility' Is on my team
+                || (HideAndSeekGM.instance.seekers.Contains(activatorPlayer) && HideAndSeekGM.instance.zombies.Contains(player))) continue; // Inavlid Target | Seeker dosen't target zombies!
 
             float distance = (player.transform.position - activatorPlayer.transform.position).magnitude;
             if (distance < closestPlayer)
@@ -469,7 +465,7 @@ public static class Abilities
 
         PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
         PlayerControllerB userPlayer = HideAndSeekGM.instance.GetPlayerWithClientId(activatorId);
-        bool isUserSeeker = Plugin.seekers.Contains(userPlayer);
+        bool isUserSeeker = HideAndSeekGM.instance.seekers.Contains(userPlayer);
 
         if(localPlayer.actualClientId == activatorId)
         {
@@ -494,8 +490,8 @@ public static class Abilities
 
                 if (isUserSeeker)
                 {
-                    info.otherFriendlies = Plugin.seekers;
-                    foreach (var zombie in Plugin.zombies)
+                    info.otherFriendlies = HideAndSeekGM.instance.seekers;
+                    foreach (var zombie in HideAndSeekGM.instance.zombies)
                     {
                         info.otherFriendlies.Add(zombie);
                     }
@@ -503,9 +499,9 @@ public static class Abilities
                 else
                 {
                     info.otherFriendlies = new();
-                    foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+                    foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Get Other Friendlies"))
                     {
-                        if (!Plugin.seekers.Contains(player) && !Plugin.zombies.Contains(player))
+                        if (!HideAndSeekGM.instance.seekers.Contains(player) && !HideAndSeekGM.instance.zombies.Contains(player))
                         {
                             info.otherFriendlies.Add(player);
                         }
@@ -586,9 +582,9 @@ public static class Abilities
 
         List<ulong> playerList = new();
 
-        foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+        foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("SwapServerEvent"))
         {
-            if (player.isPlayerControlled && !player.isPlayerDead && player.actualClientId != activatorId)
+            if (!player.isPlayerDead && player.actualClientId != activatorId)
             {
                 playerList.Add(player.actualClientId);
             }
@@ -702,9 +698,9 @@ public static class Abilities
         PlayerControllerB activatorPlayer = HideAndSeekGM.instance.GetPlayerWithClientId(activatorId);
 
         List<PlayerControllerB> targets = new List<PlayerControllerB>();
-        foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+        foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("HeatSeeking"))
         {
-            if (player.isPlayerControlled && !player.isPlayerDead && Plugin.seekers.Contains(player) != Plugin.seekers.Contains(activatorPlayer) && !Plugin.zombies.Contains(player))
+            if (!player.isPlayerDead && HideAndSeekGM.instance.seekers.Contains(player) != HideAndSeekGM.instance.seekers.Contains(activatorPlayer) && !HideAndSeekGM.instance.zombies.Contains(player))
             {
                 Debug.LogWarning("Adding player: " + player + " To targets!");
                 targets.Add(player);
@@ -774,7 +770,7 @@ public static class Abilities
                 // User
                 var newDot = new GameObject().AddComponent<SeekerDotVisuals>();
 
-                foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
+                foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Find Heat Seeking Dots"))
                 {
                     if (player.actualClientId == targetId)
                     {

@@ -4,12 +4,12 @@ using LCVR.Player;
 using System;
 using System.Collections;
 using UnityEngine;
+using Debug = Debugger.Debug;
 
 namespace HideAndSeek.Patches;
 
 public static class PatchHelper
 {
-    public static Action<ulong> playerRevived;
     public static void ReviveAfterWaitAndCallRpc(PlayerControllerB player, float wait = 5)
     {
         if (!StartOfRound.Instance.shipHasLanded) { Debug.LogError("Can't revive someone while the ship is leaving!"); return; }
@@ -50,25 +50,6 @@ public static class PatchHelper
         component.GetComponent<BoxCollider>().isTrigger = false;
         localPlayerController.GetComponent<CharacterController>().excludeLayers = 0;
         VRSession.Instance.HUD.ToggleSpectatorLight(new bool?(false));
-    }
-    public static IEnumerator GiveZombieItems(PlayerControllerB player)
-    {
-        if (!string.IsNullOrEmpty(Config.zombieItemSlot1.Value))
-        {
-            yield return HideAndSeekGM.instance.SpawnNewItemCoroutine(Config.zombieItemSlot1.Value, player);
-        }
-        if (!string.IsNullOrEmpty(Config.zombieItemSlot2.Value))
-        {
-            yield return HideAndSeekGM.instance.SpawnNewItemCoroutine(Config.zombieItemSlot2.Value, player);
-        }
-        if (!string.IsNullOrEmpty(Config.zombieItemSlot3.Value))
-        {
-            yield return HideAndSeekGM.instance.SpawnNewItemCoroutine(Config.zombieItemSlot3.Value, player);
-        }
-        if (!string.IsNullOrEmpty(Config.zombieItemSlot4.Value))
-        {
-            yield return HideAndSeekGM.instance.SpawnNewItemCoroutine(Config.zombieItemSlot4.Value, player);
-        }
     }
     static IEnumerator FixTip()
     {
@@ -112,7 +93,7 @@ public static class PatchHelper
         {
             ReviveVRPlayerLocal(player);
         }
-        catch (System.Exception)
+        catch (Exception)
         {
             Debug.LogError("ReviveVRPlayerLocal Ran into an error!");
             //throw;
@@ -232,36 +213,10 @@ public static class PatchHelper
             _this.StartCoroutine(FixTip());
         }
 
-        if (!Plugin.zombies.Contains(player))
+        if (!HideAndSeekGM.instance.zombies.Contains(player))
         {
-            Plugin.zombies.Add(player);
+            Debug.LogMessage($"------------- Adding zombie after reviving {player} -------------------");
+            HideAndSeekGM.instance.MakeZombie(player);
         }
-        if (GameNetworkManager.Instance.localPlayerController == player)
-        {
-            player.thisPlayerModelArms.enabled = true;
-
-            switch (Config.zombieSpawnLocation.Value)
-            {
-                case "Entrance":
-                    EntranceTeleport entranceScript = (EntranceTeleport)AccessTools.Method(typeof(RoundManager), "FindMainEntranceScript").Invoke(null, [false]);
-
-                    entranceScript.TeleportPlayer();
-                    break;
-                case "Inside":
-                    EntranceTeleport insideScript = (EntranceTeleport)AccessTools.Method(typeof(RoundManager), "FindMainEntranceScript").Invoke(null, [true]);
-
-                    insideScript.TeleportPlayer();
-                    break;
-                default:
-                    break;
-            }
-        }
-        if (GameNetworkManager.Instance.isHostingGame)
-        {
-            Debug.LogError("Giving player items!");
-            _this.StartCoroutine(GiveZombieItems(player));
-        }
-        player.usernameBillboardText.color = Config.zombieNameColor.Value;
-        playerRevived?.Invoke(player.actualClientId);
     }
 }

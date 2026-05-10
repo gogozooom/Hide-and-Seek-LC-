@@ -6,18 +6,11 @@ using Debug = Debugger.Debug;
 
 namespace HideAndSeek.AbilityScripts
 {
-    public static class AbilityManager
+    public static class AbilityManager // TODO: change to mono behaviour
     {
         // Player Manager
         public static IEnumerator ConnectStart() // Called at start of HideAndSeekGM
         {
-            Debug.Log($"Step One; GameNetworkManager Exits?: {GameNetworkManager.Instance != null}");
-
-            while (GameNetworkManager.Instance == null)
-            {
-                yield return new WaitForEndOfFrame();
-            }
-
             Debug.Log($"Step Two; localPlayer Exits?: {GameNetworkManager.Instance.localPlayerController != null}");
 
             while (GameNetworkManager.Instance.localPlayerController == null)
@@ -27,12 +20,9 @@ namespace HideAndSeek.AbilityScripts
 
             Debug.Log($"We are done! localPlayer Exits?: {GameNetworkManager.Instance.localPlayerController != null}");
 
-            foreach (var player in GameObject.FindObjectsOfType<PlayerControllerB>())
+            foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Ability Manager Start"))
             {
-                if (player.isPlayerControlled)
-                {
-                    PlayerJoined(player.actualClientId);
-                }
+                PlayerJoined(player.actualClientId);
             }
         }
 
@@ -103,7 +93,7 @@ namespace HideAndSeek.AbilityScripts
             {
                 // Valid check
 
-                bool isSeeker = Plugin.seekers.Contains(player);
+                bool isSeeker = HideAndSeekGM.instance.seekers.Contains(player);
 
                 if (ability.abilityCost > playerAbilities.money)
                 {

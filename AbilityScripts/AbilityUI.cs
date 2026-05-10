@@ -121,6 +121,9 @@ namespace HideAndSeek.AbilityScripts
 
             Debug.Log("AbilityUI Awake(): Initalizing References!");
 
+            HideAndSeekGM.instance.roundStarted += OnRoundStart;
+            HideAndSeekGM.instance.shipLeaving += OnShipLeaving;
+
             Debug.LogWarning("Reading Config!");
 
             Abilities.ReadConfigFile();
@@ -542,41 +545,38 @@ namespace HideAndSeek.AbilityScripts
             inputs.Clear();
         }
 
-        bool roundStarted = false;
         void Update()
         {
-            if (!roundStarted && StartOfRound.Instance.shipHasLanded && Plugin.seekers.Count > 0)
-            {
-                Debug.LogError("[Ability UI] Round Started!");
-
-                roundStarted = true;
-                selectedAbilities = GetUsableAbilities(selectedAbilities);
-                currentAbilityIndex = 0;
-                selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
-                DisplayAbility(selectedAbility);
-            }
-            else if(roundStarted && StartOfRound.Instance.inShipPhase)
-            {
-                Debug.LogError("[Ability UI] Round Ended!");
-
-                roundStarted = false;
-                selectedAbilities = allAbilities;
-                currentAbilityIndex = 0;
-                selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
-                DisplayAbility(selectedAbility);
-            }
-
             UpdateCoolDownFade();
             UpdateTextColor();
         }
 
+        private void OnRoundStart()
+        {
+            Debug.LogError("[Ability UI] Round Started!");
+
+            selectedAbilities = GetUsableAbilities(selectedAbilities);
+            currentAbilityIndex = 0;
+            selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
+            DisplayAbility(selectedAbility);
+        }
+        private void OnShipLeaving()
+        {
+            Debug.LogError("[Ability UI] Round Ended!");
+
+            selectedAbilities = allAbilities;
+            currentAbilityIndex = 0;
+            selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
+            DisplayAbility(selectedAbility);
+        }
+
         List<string> GetUsableAbilities(List<string> abilities)
         {
-            if (roundStarted)
+            if (!StartOfRound.Instance.inShipPhase)
             {
                 List<string> newAbilities = new();
 
-                if (Plugin.seekers.Contains(attachedPlayer))
+                if (HideAndSeekGM.instance.seekers.Contains(attachedPlayer))
                 {
                     foreach (var aName in abilities)
                     {
@@ -610,8 +610,6 @@ namespace HideAndSeek.AbilityScripts
         }
         void UpdateCredits(int newAmount)
         {
-            Debug.Log($"UI got event with new amount {newAmount}");
-
             #region CreateSpaceEveryThousand
 
             string amountString = "";
@@ -938,12 +936,12 @@ namespace HideAndSeek.AbilityScripts
         {
             if (!attachedPlayer.gameObject.activeSelf) return;
 
-            bool menuEnabled = FindObjectOfType<QuickMenuManager>().isMenuOpen;
+            bool menuEnabled = FindFirstObjectByType<QuickMenuManager>().isMenuOpen;
 
             if (!gameObject.activeSelf && !attachedPlayer.inTerminalMenu && !menuEnabled) // Enable
             {
                 if (!StartOfRound.Instance.inShipPhase)
-                    if (attachedPlayer.isPlayerDead || !attachedPlayer.isPlayerControlled || !Config.zombiesCanUseAbilities.Value && Plugin.zombies.Contains(attachedPlayer)) { return; }
+                    if (attachedPlayer.isPlayerDead || !Config.zombiesCanUseAbilities.Value && HideAndSeekGM.instance.zombies.Contains(attachedPlayer)) { return; }
 
                 ToggleTutorialUI(false);
                 gameObject.SetActive(true);
@@ -1018,7 +1016,7 @@ namespace HideAndSeek.AbilityScripts
                 return;
             }
 
-            bool isSeeker = Plugin.seekers.Contains(attachedPlayer);
+            bool isSeeker = HideAndSeekGM.instance.seekers.Contains(attachedPlayer);
             if (!(selectedAbility.seekerAbility && isSeeker || selectedAbility.hiderAbility && !isSeeker) || // Not your ability type
                 (selectedAbility.oneTimeUse && selectedAbility.usedThisRound) || // Already Used This Round
                 (Time.time - selectedAbility.lastUsed <= selectedAbility.abilityDelay) || // On Cooldown
@@ -1196,7 +1194,7 @@ namespace HideAndSeek.AbilityScripts
             if (!tutorialMenu.activeSelf && !attachedPlayer.inTerminalMenu && !menuEnabled) // Enable
             {
                 if (!StartOfRound.Instance.inShipPhase)
-                    if (attachedPlayer.isPlayerDead || !attachedPlayer.isPlayerControlled || !Config.zombiesCanUseAbilities.Value && Plugin.zombies.Contains(attachedPlayer)) { return; }
+                    if (attachedPlayer.isPlayerDead || !Config.zombiesCanUseAbilities.Value && HideAndSeekGM.instance.zombies.Contains(attachedPlayer)) { return; }
 
                 tutorialMenu.SetActive(true);
                 Cursor.lockState = CursorLockMode.None;

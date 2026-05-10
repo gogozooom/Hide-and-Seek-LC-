@@ -17,6 +17,7 @@ public class RoundManagerPatch
     static void AwakePatch()
     {
         HideAndSeekGM.Init();
+        ObjectivesManager.Init();
     }
 
     [HarmonyPatch("LoadNewLevel")]
@@ -57,13 +58,13 @@ public class PlayerControllerBPatch
         Debug.LogMessage($"Damaged recived: {causeOfDeath}");
         PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
 
-        if (Objective.PlayerReachedObjective(localPlayer))
+        if (ObjectivesManager.instance.PlayerReachedObjective(localPlayer))
         {
             Debug.LogError($"Tried to damage player '{localPlayer.playerUsername}' but he has reached the objective!");
             return false; // Player reached objective!
         }
 
-        if (Plugin.seekers.Contains(localPlayer) || Plugin.zombies.Contains(localPlayer)) // Is seeker
+        if (HideAndSeekGM.instance.seekers.Contains(localPlayer) || HideAndSeekGM.instance.zombies.Contains(localPlayer)) // Is seeker
         {
             if (causeOfDeath == CauseOfDeath.Abandoned)
             {
@@ -88,13 +89,13 @@ public class PlayerControllerBPatch
         PlayerControllerB localPlayer = __instance;
         PlayerControllerB attacker = HideAndSeekGM.instance.GetPlayerWithClientId((ulong)playerWhoHit);
 
-        Debug.LogError($"Hit Damage Recived! local '{Plugin.zombies.Contains(localPlayer) || Plugin.seekers.Contains(localPlayer)}' attacker '{Plugin.zombies.Contains(attacker) || Plugin.seekers.Contains(attacker)}'");
-        if((Plugin.zombies.Contains(localPlayer) || Plugin.seekers.Contains(localPlayer)) && (Plugin.zombies.Contains(attacker) || Plugin.seekers.Contains(attacker)))
+        Debug.LogError($"Hit Damage Recived! local '{HideAndSeekGM.instance.zombies.Contains(localPlayer) || HideAndSeekGM.instance.seekers.Contains(localPlayer)}' attacker '{HideAndSeekGM.instance.zombies.Contains(attacker) || HideAndSeekGM.instance.seekers.Contains(attacker)}'");
+        if((HideAndSeekGM.instance.zombies.Contains(localPlayer) || HideAndSeekGM.instance.seekers.Contains(localPlayer)) && (HideAndSeekGM.instance.zombies.Contains(attacker) || HideAndSeekGM.instance.seekers.Contains(attacker)))
         {
             return false;
         }
 
-        if(Plugin.zombies.Contains(attacker) || Plugin.seekers.Contains(attacker))
+        if(HideAndSeekGM.instance.zombies.Contains(attacker) || HideAndSeekGM.instance.seekers.Contains(attacker))
         {
             damageAmount = 90;
             newHealthAmount = localPlayer.health - damageAmount;
@@ -144,18 +145,11 @@ public class EntranceTeleportPatch
     [HarmonyPrefix]
     public static bool TeleportPlayerPatch()
     {
-        List<PlayerControllerB> players = new List<PlayerControllerB>();
-        foreach (var player in GameObject.FindObjectsByType<PlayerControllerB>(0))
-        {
-            if (player.isPlayerControlled)
-            {
-                players.Add(player);
-            }
-        }
+        List<PlayerControllerB> players = HideAndSeekGM.GetAllConnectedPlayers("Teleport Player Patch");
 
         PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
 
-        if(!Plugin.seekers.Contains(localPlayer) && !Plugin.zombies.Contains(localPlayer) && HideAndSeekGM.instance.playersTeleported >= players.Count && Config.lockHidersInside.Value && !Objective.objectiveReleased)
+        if(!HideAndSeekGM.instance.seekers.Contains(localPlayer) && !HideAndSeekGM.instance.zombies.Contains(localPlayer) && HideAndSeekGM.instance.playersTeleported >= players.Count && Config.lockHidersInside.Value && !ObjectivesManager.instance.objectiveReleased)
         {
             HUDManager.Instance.DisplayTip("???", "The entrance appears to be blocked.");
             return false;
@@ -180,6 +174,7 @@ public class TimeOfDayPatch
     [HarmonyPrefix]
     public static bool UpdateProfitQuotaCurrentTimePatch()
     {
+        HideAndSeekGM.instance.backInOrbit?.Invoke();
         HUDManagerPatch.UpdateRoundDisplay();
         return false;
     }
@@ -264,7 +259,7 @@ public class StartOfRoundPatch
 
         if (__instance.isChallengeFile)
         {
-            TimeOfDay.Instance.totalTime = TimeOfDay.Instance.lengthOfHours * (float)TimeOfDay.Instance.numberOfHours;
+            TimeOfDay.Instance.totalTime = TimeOfDay.Instance.lengthOfHours * TimeOfDay.Instance.numberOfHours;
             TimeOfDay.Instance.timeUntilDeadline = TimeOfDay.Instance.totalTime;
             TimeOfDay.Instance.profitQuota = 200;
         }
@@ -275,7 +270,7 @@ public class StartOfRoundPatch
         TimeOfDay.Instance.UpdateProfitQuotaCurrentTime();
         __instance.LoadPlanetsMoldSpreadData();
         __instance.SetPlanetsWeather(0);
-        Object.FindObjectOfType<Terminal>().SetItemSales();
+
         if (__instance.gameStats.daysSpent == 0 && !__instance.isChallengeFile)
         {
             //__instance.PlayFirstDayShipAnimation(true); No

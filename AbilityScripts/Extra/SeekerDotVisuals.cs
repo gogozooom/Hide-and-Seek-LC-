@@ -24,7 +24,7 @@ public class SeekerDotVisuals : MonoBehaviour
             Transform localCamera = GameNetworkManager.Instance.localPlayerController.gameplayCamera.transform;
 
             gameObject.transform.LookAt(localCamera.position);
-            if (Plugin.seekers.Count > 0)
+            if (HideAndSeekGM.instance.seekers.Count > 0)
             {
                 if ((localCamera.position - targetPosition).magnitude < 3)
                 {

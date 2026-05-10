@@ -27,11 +27,13 @@ namespace HideAndSeek.AbilityScripts
 
         static GameObject abilityRadialMenuPrefab;
         static GameObject tutorialMenuPrefab;
-        bool emoteModExits;
+        bool emoteModExists;
 
         bool isOwner = false;
         void Start()
         {
+            HideAndSeekGM.instance.shipLeaving += ResetAbilityUse;
+
             attachedPlayer = gameObject.GetComponent<PlayerControllerB>();
 
             isOwner = (attachedPlayer == GameNetworkManager.Instance.localPlayerController);
@@ -85,26 +87,13 @@ namespace HideAndSeek.AbilityScripts
 
             }
 
-            emoteModExits = canvas.transform.FindChild("EmotesRadialMenu")?.gameObject != null;
+            emoteModExists = canvas.transform.FindChild("EmotesRadialMenu")?.gameObject != null;
 
             localInstance = this;
         }
 
-        bool roundStarted = false;
         void Update()
-        {
-            if (!roundStarted && !StartOfRound.Instance.inShipPhase && Plugin.seekers.Count > 0)
-            {
-                // Round started
-                roundStarted = true;
-            }
-            else if (roundStarted && StartOfRound.Instance.inShipPhase)
-            {
-                // Round ended
-                ResetAbilityUse();
-                roundStarted = false;
-            }
-            
+        {            
             Vector2 movementInput = IngamePlayerSettings.Instance.playerInput.actions.FindAction("Move", false).ReadValue<Vector2>();
 
             if (movementInput.magnitude > 0.2f)
@@ -166,7 +155,7 @@ namespace HideAndSeek.AbilityScripts
         {
             if (!Config.abilitiesEnabled.Value) return;
             sellingScrap = false;
-            if (attachedPlayer.isPlayerDead || !attachedPlayer.isPlayerControlled) { Debug.LogWarning($"Ur ded bruh, ca't du dat. Dead:{attachedPlayer.isPlayerDead} Controlled:{attachedPlayer.isPlayerControlled}"); return; }
+            if (attachedPlayer.isPlayerDead) { Debug.LogWarning($"Ur ded bruh, ca't du dat. Dead:{attachedPlayer.isPlayerDead}"); return; }
 
             GrabbableObject item = attachedPlayer.ItemSlots[attachedPlayer.currentItemSlot];
             Debug.Log($"[Client] Attempting to sell selected object... '{item}'");
@@ -236,7 +225,7 @@ namespace HideAndSeek.AbilityScripts
             if (ability != null)
             {
                 // Valid check
-                bool isSeeker = Plugin.seekers.Contains(attachedPlayer);
+                bool isSeeker = HideAndSeekGM.instance.seekers.Contains(attachedPlayer);
 
                 if (ability.abilityCost > money)
                 {
