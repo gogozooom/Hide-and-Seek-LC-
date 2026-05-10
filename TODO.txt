@@ -2,12 +2,10 @@ TODO:
 
 Bugs:
 
-	Remaining hiders being calculated incorrectly
+	Fix rewards working incorrectly
 	Critical injury not working on zombies
 
 Features:
-
-	Refactor!
 
 	"I am steve" Taunt
 	"GET OUT" Taunt
