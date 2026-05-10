@@ -31,7 +31,7 @@ namespace HideAndSeek.Patches
             _extraMessage = __extraMessage;
         }
     }
-    class SyncingPatch
+    class NetworkEvents
     {
         public static void LevelLoading(string eventName, MessageProperties mProps = null)
         {
@@ -111,13 +111,13 @@ namespace HideAndSeek.Patches
 
             Debug.LogMessage("Got Player Teleported Brodcast!");
 
-            if (mProps._bool) { RoundManagerPatch.playersTeleported = 0; Debug.LogMessage("New Round, Reset Players Teleported!"); return; } // mProps._bool = resetTeleportedPlayers
+            if (mProps._bool) { HideAndSeekGM.instance.playersTeleported = 0; Debug.LogMessage("New Round, Reset Players Teleported!"); return; } // mProps._bool = resetTeleportedPlayers
 
             if (!mProps._null)
             {
-                RoundManagerPatch.itemSpawnPositions.Add((mProps._ulong, mProps._Vector3));
-                RoundManagerPatch.playersTeleported += 1;
-                Debug.LogMessage($"Added to teleported players! Number is now '{RoundManagerPatch.playersTeleported}' ");
+                HideAndSeekGM.instance.itemSpawnPositions.Add((mProps._ulong, mProps._Vector3));
+                HideAndSeekGM.instance.playersTeleported += 1;
+                Debug.LogMessage($"Added to teleported players! Number is now '{HideAndSeekGM.instance.playersTeleported}' ");
             }
             else
             {
@@ -141,7 +141,7 @@ namespace HideAndSeek.Patches
 
             Debug.LogMessage("Get Level Done Loading Brodcast!");
 
-            RoundManagerPatch.levelLoading = false;
+            HideAndSeekGM.instance.levelLoading = false;
         }
         public static void LeverFlipped(string eventName, MessageProperties mProps)
         {
@@ -149,7 +149,7 @@ namespace HideAndSeek.Patches
 
             Debug.LogMessage($"Got Lever Flipped Brodcast! New player id ({mProps._ulong})");
 
-            RoundManagerPatch.leverLastFlippedBy = mProps._ulong;
+            HideAndSeekGM.instance.leverLastFlippedBy = mProps._ulong;
         }
         public static void SellCurrentItem(string eventName, MessageProperties mProps)
         {
@@ -165,7 +165,7 @@ namespace HideAndSeek.Patches
 
             Debug.LogMessage($"Got Money Change Brodcast! For player id: '{mProps._ulong}' is silent: '{mProps._string == "silent"}'");
 
-            PlayerControllerB selectedPlayer = RoundManagerPatch.GetPlayerWithClientId(mProps._ulong);
+            PlayerControllerB selectedPlayer = HideAndSeekGM.instance.GetPlayerWithClientId(mProps._ulong);
 
             if (mProps._null) // Everyone
             {
@@ -308,7 +308,7 @@ namespace HideAndSeek.Patches
 
             Debug.Log($"Got RevivePlayerLocal({mProps._ulong})");
 
-            PatchesManager.RevivePlayerLocal(RoundManagerPatch.GetPlayerWithClientId(mProps._ulong));
+            PatchHelper.RevivePlayerLocal(HideAndSeekGM.instance.GetPlayerWithClientId(mProps._ulong));
         }
         // Other Methods
         static void GrabObject(PlayerControllerB __this, GrabbableObject currentlyGrabbingObject)
@@ -377,7 +377,7 @@ namespace HideAndSeek.Patches
         {
             Debug.LogMessage("Got Teleport Player Brodcast!");
 
-            RoundManagerPatch.playersTeleported = 0;
+            HideAndSeekGM.instance.playersTeleported = 0;
 
             RoundManager.Instance.StartCoroutine(TeleportSelf(true));
         }
@@ -404,7 +404,7 @@ namespace HideAndSeek.Patches
 
             if (isHost)
             {
-                RoundManagerPatch.PlayerDied("Teleport Self", checking: true);
+                HideAndSeekGM.instance.PlayerDied("Teleport Self", checking: true);
                 NetworkHandler.Instance.EventSendRpc(".lockDoor");
             }
 

@@ -31,25 +31,25 @@ namespace HideAndSeek
             // SyncingPatch
 
             Debug.LogMessage("NetworkHandler OnNetworkSpawn(): Connecting Events....");
-            NetworkEvent += SyncingPatch.LevelLoading;
-            NetworkEvent += SyncingPatch.LevelLoaded;
-            NetworkEvent += SyncingPatch.PlayerChosen;
-            NetworkEvent += SyncingPatch.SeekersChosen;
-            NetworkEvent += SyncingPatch.LockDoor;
-            NetworkEvent += SyncingPatch.OpenDoor;
-            NetworkEvent += SyncingPatch.PlayerTeleported;
-            NetworkEvent += SyncingPatch.DisplayTip;
-            NetworkEvent += SyncingPatch.LeverFlipped;
-            NetworkEvent += SyncingPatch.SellCurrentItem;
-            NetworkEvent += SyncingPatch.MoneyChanged;
-            NetworkEvent += SyncingPatch.DestroyItem;
-            NetworkEvent += SyncingPatch.BuyAbility;
-            NetworkEvent += SyncingPatch.ActivateAbility;
-            NetworkEvent += SyncingPatch.SetDayTime;
-            NetworkEvent += SyncingPatch.GrabItem;
-            NetworkEvent += SyncingPatch.RequestAbilityConfig;
-            NetworkEvent += SyncingPatch.ReceiveAbilityConfig;
-            NetworkEvent += SyncingPatch.RevivePlayerLocal;
+            NetworkEvent += NetworkEvents.LevelLoading;
+            NetworkEvent += NetworkEvents.LevelLoaded;
+            NetworkEvent += NetworkEvents.PlayerChosen;
+            NetworkEvent += NetworkEvents.SeekersChosen;
+            NetworkEvent += NetworkEvents.LockDoor;
+            NetworkEvent += NetworkEvents.OpenDoor;
+            NetworkEvent += NetworkEvents.PlayerTeleported;
+            NetworkEvent += NetworkEvents.DisplayTip;
+            NetworkEvent += NetworkEvents.LeverFlipped;
+            NetworkEvent += NetworkEvents.SellCurrentItem;
+            NetworkEvent += NetworkEvents.MoneyChanged;
+            NetworkEvent += NetworkEvents.DestroyItem;
+            NetworkEvent += NetworkEvents.BuyAbility;
+            NetworkEvent += NetworkEvents.ActivateAbility;
+            NetworkEvent += NetworkEvents.SetDayTime;
+            NetworkEvent += NetworkEvents.GrabItem;
+            NetworkEvent += NetworkEvents.RequestAbilityConfig;
+            NetworkEvent += NetworkEvents.ReceiveAbilityConfig;
+            NetworkEvent += NetworkEvents.RevivePlayerLocal;
 
             NetworkMessage.OnReceivedFromClient += EventRecivedRpc;
         }
@@ -57,25 +57,25 @@ namespace HideAndSeek
         public override void OnDestroy() // This should fix double calling, maybe
         {
             Debug.LogMessage("NetworkHandler OnDestroy(): Disconnecting Events....");
-            NetworkEvent -= SyncingPatch.LevelLoading;
-            NetworkEvent -= SyncingPatch.LevelLoaded;
-            NetworkEvent -= SyncingPatch.PlayerChosen;
-            NetworkEvent -= SyncingPatch.SeekersChosen;
-            NetworkEvent -= SyncingPatch.LockDoor;
-            NetworkEvent -= SyncingPatch.OpenDoor;
-            NetworkEvent -= SyncingPatch.PlayerTeleported;
-            NetworkEvent -= SyncingPatch.DisplayTip;
-            NetworkEvent -= SyncingPatch.LeverFlipped;
-            NetworkEvent -= SyncingPatch.SellCurrentItem;
-            NetworkEvent -= SyncingPatch.MoneyChanged;
-            NetworkEvent -= SyncingPatch.DestroyItem;
-            NetworkEvent -= SyncingPatch.BuyAbility;
-            NetworkEvent -= SyncingPatch.ActivateAbility;
-            NetworkEvent -= SyncingPatch.SetDayTime;
-            NetworkEvent -= SyncingPatch.GrabItem;
-            NetworkEvent -= SyncingPatch.RequestAbilityConfig;
-            NetworkEvent -= SyncingPatch.ReceiveAbilityConfig;
-            NetworkEvent -= SyncingPatch.RevivePlayerLocal;
+            NetworkEvent -= NetworkEvents.LevelLoading;
+            NetworkEvent -= NetworkEvents.LevelLoaded;
+            NetworkEvent -= NetworkEvents.PlayerChosen;
+            NetworkEvent -= NetworkEvents.SeekersChosen;
+            NetworkEvent -= NetworkEvents.LockDoor;
+            NetworkEvent -= NetworkEvents.OpenDoor;
+            NetworkEvent -= NetworkEvents.PlayerTeleported;
+            NetworkEvent -= NetworkEvents.DisplayTip;
+            NetworkEvent -= NetworkEvents.LeverFlipped;
+            NetworkEvent -= NetworkEvents.SellCurrentItem;
+            NetworkEvent -= NetworkEvents.MoneyChanged;
+            NetworkEvent -= NetworkEvents.DestroyItem;
+            NetworkEvent -= NetworkEvents.BuyAbility;
+            NetworkEvent -= NetworkEvents.ActivateAbility;
+            NetworkEvent -= NetworkEvents.SetDayTime;
+            NetworkEvent -= NetworkEvents.GrabItem;
+            NetworkEvent -= NetworkEvents.RequestAbilityConfig;
+            NetworkEvent -= NetworkEvents.ReceiveAbilityConfig;
+            NetworkEvent -= NetworkEvents.RevivePlayerLocal;
             base.OnDestroy();
         }
 

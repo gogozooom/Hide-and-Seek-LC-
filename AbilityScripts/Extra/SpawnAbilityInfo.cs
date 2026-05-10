@@ -3,33 +3,32 @@ using HideAndSeek.Patches;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HideAndSeek.AbilityScripts.Extra
+namespace HideAndSeek.AbilityScripts;
+
+public class SpawnAbilityInfo : MonoBehaviour
 {
-    public class SpawnAbilityInfo : MonoBehaviour
+    public PlayerControllerB creatorPlayer;
+    public List<PlayerControllerB> otherFriendlies = new();
+
+    void Start()
     {
-        public PlayerControllerB creatorPlayer;
-        public List<PlayerControllerB> otherFriendlies = new();
+        PatchHelper.playerRevived += PlayerRevived;
+    }
 
-        void Start()
+    void PlayerRevived(ulong id)
+    {
+        PlayerControllerB newZombie = HideAndSeekGM.instance.GetPlayerWithClientId(id);
+        if (Plugin.seekers.Contains(creatorPlayer))
         {
-            PatchesManager.playerRevived += PlayerRevived;
+            // Creator is seeker
+            if(!otherFriendlies.Contains(newZombie))
+                otherFriendlies.Add(newZombie);
         }
-
-        void PlayerRevived(ulong id)
+        else
         {
-            PlayerControllerB newZombie = RoundManagerPatch.GetPlayerWithClientId(id);
-            if (Plugin.seekers.Contains(creatorPlayer))
-            {
-                // Creator is seeker
-                if(!otherFriendlies.Contains(newZombie))
-                    otherFriendlies.Add(newZombie);
-            }
-            else
-            {
-                // Creator is hider
-                if (otherFriendlies.Contains(newZombie))
-                    otherFriendlies.Remove(newZombie);
-            }
+            // Creator is hider
+            if (otherFriendlies.Contains(newZombie))
+                otherFriendlies.Remove(newZombie);
         }
     }
 }

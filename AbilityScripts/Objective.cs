@@ -76,7 +76,7 @@ namespace HideAndSeek
 
                                 player.usernameBillboardText.color = Config.objectiveNameColor.Value;
 
-                                RoundManagerPatch.PlayerDied("Objective");
+                                HideAndSeekGM.instance.PlayerDied("Objective");
 
                                 if (localPlayer == player)
                                 {

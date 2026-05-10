@@ -1022,7 +1022,7 @@ namespace HideAndSeek.AbilityScripts
             if (!(selectedAbility.seekerAbility && isSeeker || selectedAbility.hiderAbility && !isSeeker) || // Not your ability type
                 (selectedAbility.oneTimeUse && selectedAbility.usedThisRound) || // Already Used This Round
                 (Time.time - selectedAbility.lastUsed <= selectedAbility.abilityDelay) || // On Cooldown
-                selectedAbility.requiresRoundActive && !RoundManagerPatch.IsRoundActive() || // Requires Round Active
+                selectedAbility.requiresRoundActive && !HideAndSeekGM.instance.IsRoundActive() || // Requires Round Active
                 selectedAbility.requiresSeekerActive && TimeOfDay.Instance.currentDayTime <= Config.timeSeekerIsReleased.Value) // Requires Seeker Active 
             {
                 titleDescriptionUI.color = Color.red;

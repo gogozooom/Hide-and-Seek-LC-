@@ -9,7 +9,7 @@ namespace HideAndSeek.AbilityScripts
     public static class AbilityManager
     {
         // Player Manager
-        public static IEnumerator ConnectStart() // Called at start of RoundManagerPatch
+        public static IEnumerator ConnectStart() // Called at start of HideAndSeekGM
         {
             Debug.Log($"Step One; GameNetworkManager Exits?: {GameNetworkManager.Instance != null}");
 
@@ -38,7 +38,7 @@ namespace HideAndSeek.AbilityScripts
 
         public static void PlayerJoined(ulong playerId)
         {
-            PlayerControllerB player = RoundManagerPatch.GetPlayerWithClientId(playerId);
+            PlayerControllerB player = HideAndSeekGM.instance.GetPlayerWithClientId(playerId);
 
             if (!player)
             {
@@ -58,7 +58,7 @@ namespace HideAndSeek.AbilityScripts
         // Money Manager
         public static void SellCurrentItem(ulong playerId)
         {
-            PlayerControllerB player = RoundManagerPatch.GetPlayerWithClientId(playerId);
+            PlayerControllerB player = HideAndSeekGM.instance.GetPlayerWithClientId(playerId);
             AbilityInstance playerAbilities = player.GetComponent<AbilityInstance>();
 
             if (playerAbilities == null)
@@ -89,7 +89,7 @@ namespace HideAndSeek.AbilityScripts
     
         public static void BuyAbilityServer(ulong playerId, AbilityBase ability)
         {
-            PlayerControllerB player = RoundManagerPatch.GetPlayerWithClientId(playerId);
+            PlayerControllerB player = HideAndSeekGM.instance.GetPlayerWithClientId(playerId);
             AbilityInstance playerAbilities = player.GetComponent<AbilityInstance>();
 
             if (playerAbilities == null)
