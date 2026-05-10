@@ -2,6 +2,7 @@ TODO:
 
 Bugs:
 
+	Remaining hiders being calculated incorrectly
 	Critical injury not working on zombies
 
 Features:
