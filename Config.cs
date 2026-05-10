@@ -108,7 +108,7 @@ namespace HideAndSeek
                 "0:Gamemode.Abilities",
                 "Disable VR Turning While Menu Open",
                 false,
-                "(In VR Mode) Disables turning while the ability menu is open to make browsing through the abilities a little less weird. (WARNING: This is a little buggy, as the vr rig rotation gets reset everytime the menu opens! Which is probably not any better than with this off)"
+                "(In VR Mode) Disables turning while the ability menu is open to make browsing through the abilities a little less weird. (WARNING: This is a little buggy, as the vr rig rotation gets reset every time the menu opens! Which is probably not any better than with this off)"
             );
 
             #endregion
@@ -130,7 +130,7 @@ namespace HideAndSeek
                 "2:Players.Hider",
                 "Objective Reached Name Color",
                 new Color(1, 0, 1),
-                "The color the player's name tag will be when they have succsessfully reached the objective."
+                "The color the player's name tag will be when they have successfully reached the objective."
             );
             lockShipLever = cfg.Bind(
                 "2:Players.Seeker",
@@ -205,7 +205,7 @@ namespace HideAndSeek
                 "2:Players.Seeker",
                 "Is Seeker Immune",
                 false,
-                "Determines if the seeker could be harmed or not (not recommended while abilites are enabled)"
+                "Determines if the seeker could be harmed or not (not recommended while abilities are enabled)"
             );
             shotgunInfiniteAmmo = cfg.Bind(
                 "2:Players.Seeker",
@@ -361,7 +361,7 @@ namespace HideAndSeek
                 "2:Players.Zombie",
                 "Zombie Spawn Delay",
                 8f,
-                "When a player dies, the thread will yield for the spesified amount of seconds before attempting to respawn them as a zombie."
+                "When a player dies, the thread will yield for the specified amount of seconds before attempting to respawn them as a zombie."
             );
             zombieSpawnLocation = cfg.Bind(
                 "2:Players.Zombie",
