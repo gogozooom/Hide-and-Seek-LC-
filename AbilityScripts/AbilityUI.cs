@@ -2,7 +2,6 @@
 using GameNetcodeStuff;
 using HarmonyLib;
 using HideAndSeek.AudioScripts;
-using HideAndSeek.Patches;
 using System;
 using System.Collections;
 using System.Collections.Generic;

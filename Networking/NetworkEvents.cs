@@ -399,7 +399,7 @@ namespace HideAndSeek.Patches
                 }
             }
 
-            if (StartOfRound.Instance.shipIsLeaving)
+            if (StartOfRound.Instance.shipIsLeaving || HideAndSeekGM.instance.ShouldGameEndEarly())
             {
                 Debug.LogError("Round Ending Prematurely");
                 yield break;
@@ -486,7 +486,7 @@ namespace HideAndSeek.Patches
                 yield return new WaitForSeconds(1);
             }
 
-            if (StartOfRound.Instance.shipIsLeaving)
+            if (StartOfRound.Instance.shipIsLeaving || HideAndSeekGM.instance.ShouldGameEndEarly())
             {
                 Debug.LogError("Round Ending Prematurely");
                 yield break;

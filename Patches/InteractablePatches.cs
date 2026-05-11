@@ -61,7 +61,7 @@ public class StartMatchLeverPatch
 
         //Debug.LogError("Ship lever animation! " + System.Environment.StackTrace);
 
-        if (!HideAndSeekGM.instance.seekers.Contains(localPlayer) && !localPlayer.IsHost && !StartOfRound.Instance.inShipPhase && Config.lockShipLever.Value)
+        if (!HideAndSeekGM.instance.seekers.Contains(localPlayer) && !localPlayer.IsHost && !StartOfRound.Instance.inShipPhase && !HideAndSeekGM.instance.gameEndedEarly && Config.lockShipLever.Value)
         {
             HUDManager.Instance.DisplayTip("Hide And Seek", "You are not allowed to end the round!", true);
             return false;

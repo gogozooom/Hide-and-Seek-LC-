@@ -35,6 +35,7 @@ public class HideAndSeekGM : MonoBehaviour
     List<PlayerControllerB> rewardedPlayers = new();
 
     public bool levelLoading = false;
+    public bool gameEndedEarly = false;
     public SelectableLevel currentLevel;
 
     bool seekersWon = false;
@@ -67,8 +68,7 @@ public class HideAndSeekGM : MonoBehaviour
     {
         if (!GameNetworkManager.Instance.localPlayerController) return; // No localPlayer, Exiting...
 
-        bool isHost = GameNetworkManager.Instance.localPlayerController.IsServer;
-        if (!isHost) return;
+        if (!GameNetworkManager.Instance.localPlayerController.IsServer) return;
 
         int alivePlayerCount = StartOfRound.Instance.livingPlayers;
 
@@ -92,24 +92,21 @@ public class HideAndSeekGM : MonoBehaviour
 
     private void OnReturnToOrbit()
     {
-        if (!GameNetworkManager.Instance.isHostingGame) return;
+        if (!GameNetworkManager.Instance.isHostingGame || seekers.Count == 0 || gameEndedEarly) return;
 
-        if (seekers.Count > 0)
+        foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Award On Round End"))
         {
-            foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Award On Round End"))
+            if (!seekers.Contains(player) && !seekersWon)
             {
-                if (!seekers.Contains(player) && !seekersWon)
-                {
-                    Debug.LogMessage("Award Hider " + player);
-                    NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
-                    NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
-                }
-                else if (seekers.Contains(player) && seekersWon)
-                {
-                    Debug.LogMessage("Award Seeker " + player);
-                    NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 400, __string: "silent")); // Give Seekers Money
-                    NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
-                }
+                Debug.LogMessage("Award Hider " + player);
+                NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
+                NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
+            }
+            else if (seekers.Contains(player) && seekersWon)
+            {
+                Debug.LogMessage("Award Seeker " + player);
+                NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 400, __string: "silent")); // Give Seekers Money
+                NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
             }
         }
     }
@@ -122,6 +119,7 @@ public class HideAndSeekGM : MonoBehaviour
         rewardedPlayers.Clear();
         seekers.Clear();
         zombies.Clear();
+        gameEndedEarly = false;
         playersTeleported = 0;
 
         NetworkEvents.TeleportPlayer();
@@ -240,7 +238,7 @@ public class HideAndSeekGM : MonoBehaviour
 
         itemSpawnPositions.Clear();
 
-        instance.StartCoroutine(GivePlayersItems());
+        StartCoroutine(GivePlayersItems());
 
         levelLoading = false;
 
@@ -475,36 +473,55 @@ public class HideAndSeekGM : MonoBehaviour
         bool isHost = GameNetworkManager.Instance.isHostingGame;
         Debug.LogError($"UpdateGameState being called because '{reason}'");
 
-        var (aliveHiders, aliveSeekers, hidersObjectiveCompleted, aliveZombies) = GetAlivePlayerCount();
+        var gameState = GetGameState();
 
-        if (aliveSeekers <= 0) // All seekers dead?
+        var (aliveHiders, aliveSeekers, hidersObjectiveCompleted, _) = GetAlivePlayerCount();
+
+        switch (gameState)
         {
-            NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Seeker Died; Hiders Win!", _bool = true });
+            case GameState.HidersRemain:
 
-            if (StartOfRound.Instance.shipHasLanded)
-            {
+                // Advance time with last hider
+                if (aliveHiders == 1 && Config.shipLeaveEarly.Value && Config.timeWhenLastHider.Value > TimeOfDay.Instance.currentDayTime)
+                    NetworkHandler.Instance.EventSendRpc(".setDayTime", new(__float: Config.timeWhenLastHider.Value));
+
+                // Brodcast the amount of hiders remaining
+                NetworkHandler.Instance.EventSendRpc(".tip", new(__string: $"{aliveHiders} Hiders Remain..."));
+                break;
+
+            case GameState.HidersDied:
+
+                seekersWon = true;
+
+                NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Seeker Won!", _bool = true });
+
                 EndRound();
 
-                if (isHost) foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Hiders"))
+                break;
+            case GameState.SeekersDied:
+
+                NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Seeker Died; Hiders Win!", _bool = true });
+
+                if (StartOfRound.Instance.shipHasLanded)
                 {
-                    if (!player.isPlayerDead && player.isPlayerControlled && !seekers.Contains(player) && !zombies.Contains(player))
+                    EndRound();
+
+                    if (isHost) foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Hiders"))
                     {
-                        // Give hiders rewards for "killing" seeker
+                        if (!player.isPlayerDead && player.isPlayerControlled && !seekers.Contains(player) && !zombies.Contains(player))
+                        {
+                            // Give hiders rewards for "killing" seeker
 
-                        int reward = Mathf.RoundToInt((1080 - Config.timeSeekerIsReleased.Value) * 12 / 60); // Total Reward
+                            int reward = Mathf.RoundToInt((1080 - Config.timeSeekerIsReleased.Value) * 12 / 60); // Total Reward
 
-                        NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: reward, __string: "silent"));
+                            NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: reward, __string: "silent"));
+                        }
                     }
                 }
-            }
 
-            return;
-        }
-        // All hiders dead?
-        else if (aliveHiders <= 0 && GameNetworkManager.Instance.connectedPlayers != 1) // Last part is for testing in solo, so I don't get immediately kicked out
-        {
-            if (hidersObjectiveCompleted > 0) // Someone reached objective
-            {
+                break;
+            case GameState.HidersReachedObjective:
+
                 NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Objective Reached; Hiders Win!", _bool = true });
 
                 EndRound();
@@ -520,31 +537,12 @@ public class HideAndSeekGM : MonoBehaviour
                         NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: reward, __string: "silent")); // Give Hider Money
                     }
                 }
-            }
-            else // All properly dead
-            {
-                if (!seekersWon)
-                {
-                    seekersWon = true;
-                }
 
-                NetworkHandler.Instance.EventSendRpc(".tip", new MessageProperties() { _string = "Seeker Won!", _bool = true });
-
-                EndRound();
-            }
-        }
-        else if (aliveHiders > 0) // Hiders still alive
-        {
-            // Advance time with last hider
-            if (aliveHiders == 1 && Config.shipLeaveEarly.Value && Config.timeWhenLastHider.Value > TimeOfDay.Instance.currentDayTime)
-                NetworkHandler.Instance.EventSendRpc(".setDayTime", new(__float: Config.timeWhenLastHider.Value));
-
-            // Brodcast the amount of hiders remaining
-            NetworkHandler.Instance.EventSendRpc(".tip", new(__string: $"{aliveHiders} Hiders Remain..."));
+                break;
         }
 
         // Revive and reward players who just died
-        if (isHost) foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Players Who Just Died"))
+        if (isHost && StartOfRound.Instance.shipHasLanded) foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Players Who Just Died"))
         {
             if (!player.isPlayerDead) continue;
             // Player must be dead
@@ -577,7 +575,42 @@ public class HideAndSeekGM : MonoBehaviour
                 PatchHelper.ReviveAfterWaitAndCallRpc(player, Config.zombieSpawnDelay.Value);
         }
     }
+    public GameState GetGameState()
+    {
+        var (aliveHiders, aliveSeekers, hidersObjectiveCompleted, aliveZombies) = GetAlivePlayerCount();
 
+        if (aliveSeekers <= 0) // All seekers dead?
+        {
+            return GameState.SeekersDied;
+        }
+        // All hiders dead?
+        else if (aliveHiders <= 0)
+        {
+            if (hidersObjectiveCompleted > 0) // Someone reached objective
+            {
+                return GameState.HidersReachedObjective;
+            }
+            else // All properly dead
+            {
+                return GameState.HidersDied;
+            }
+        }
+        else
+        {
+            return GameState.HidersRemain;
+        }
+    }
+    public bool ShouldGameEndEarly()
+    {
+        if (GetGameState() != GameState.HidersRemain)
+        {
+            gameEndedEarly = true;
+            EndRound();
+            return true;
+        }
+
+        return false;
+    }
     public void EndRound()
     {
         StartMatchLever lever = GameObject.FindAnyObjectByType<StartMatchLever>();
@@ -828,4 +861,11 @@ public class HideAndSeekGM : MonoBehaviour
 
         return result;
     }
+}
+public enum GameState
+{
+    HidersRemain,
+    HidersDied,
+    SeekersDied,
+    HidersReachedObjective
 }
