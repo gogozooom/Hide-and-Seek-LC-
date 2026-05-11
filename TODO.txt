@@ -2,6 +2,7 @@ TODO:
 
 Bugs:
 
+	Ship gets stuck when client pulls bugged lever once and a second time to be seeker with the host immediately dying afterwards
 	Critical injury not working on zombies
 
 Features:
