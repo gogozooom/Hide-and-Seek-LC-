@@ -94,20 +94,19 @@ public class HideAndSeekGM : MonoBehaviour
     {
         if (!GameNetworkManager.Instance.isHostingGame) return;
 
-        Debug.LogError("[HideAndSeekGM] OnRoundEnd()");
         if (seekers.Count > 0)
         {
             foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Award On Round End"))
             {
                 if (!seekers.Contains(player) && !seekersWon)
                 {
-                    Debug.LogMessage("Award Hider");
+                    Debug.LogMessage("Award Hider " + player);
                     NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 250, __string: "silent")); // Give Hiders Money
                     NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
                 }
                 else if (seekers.Contains(player) && seekersWon)
                 {
-                    Debug.LogMessage("Award Seeker");
+                    Debug.LogMessage("Award Seeker " + player);
                     NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: player.actualClientId, __int: 400, __string: "silent")); // Give Seekers Money
                     NetworkHandler.Instance.EventSendRpc(".tip", new(__ulong: player.actualClientId, __string: "You won, and got a reward!", __int: -1));
                 }
@@ -117,7 +116,6 @@ public class HideAndSeekGM : MonoBehaviour
 
     public void OnLevelLoaded(SelectableLevel newLevel)
     {
-        Debug.LogMessage($"[LoadLevelPatch] LoadLevel Start! ------------------------------------- ");
         levelLoading = true;
 
         roundManager = GameObject.FindFirstObjectByType<RoundManager>();
@@ -671,7 +669,6 @@ public class HideAndSeekGM : MonoBehaviour
     }
     public IEnumerator SpawnNewItemCoroutine(string itemName, PlayerControllerB player, bool forceSamePosition = false)
     {
-        Debug.LogMessage("SpawnNewItem()!");
         Item[] items = Resources.FindObjectsOfTypeAll<Item>();
 
         string targetItem = itemName;
@@ -697,27 +694,16 @@ public class HideAndSeekGM : MonoBehaviour
 
         if (i == items.Length)
         {
-            Debug.LogWarning($"Could not find {targetItem} in items id list! (Look at README.md to see item IDs)");
             yield break;
         }
 
         Vector3 itemSpawnPosition = player.transform.position;
-        bool newPositionFound = false;
-        Debug.Log($"Spawing Item with spawn positions: {itemSpawnPositions.Count}");
         foreach (var idVector in itemSpawnPositions)
         {
-            Debug.Log($"Scanning {idVector.playerId} with position {idVector.position}");
             if (idVector.playerId == player.actualClientId)
             {
-                newPositionFound = true;
                 itemSpawnPosition = idVector.position;
-                Debug.Log($"New Item Spawn Position! {itemSpawnPosition}");
             }
-        }
-
-        if (!newPositionFound)
-        {
-            Debug.LogError($"Could not find Spawn Position for player");
         }
 
         if (forceSamePosition)
@@ -734,8 +720,6 @@ public class HideAndSeekGM : MonoBehaviour
         newItem.fallTime = 0f;
         newItem.GetComponent<NetworkObject>().Spawn(false);
         newItem.NetworkObject.ChangeOwnership(player.actualClientId);
-
-        Debug.LogMessage($"Spawning {newItem.name} for {player.playerUsername} at position {newItem.transform.position}");
 
         yield return new WaitForEndOfFrame();
 
@@ -831,14 +815,14 @@ public class HideAndSeekGM : MonoBehaviour
 
     public static List<PlayerControllerB> GetAllConnectedPlayers(string reason)
     {
-        Debug.LogError($"[HideAndSeekGM] GetAllConnectedPlayers('{reason}')");
+        //Debug.LogError($"[HideAndSeekGM] GetAllConnectedPlayers('{reason}')");
         List<PlayerControllerB> result = [];
 
         foreach (var player in FindObjectsByType<PlayerControllerB>(0))
         {
-            Debug.LogMessage("Looping Through Player: " + player);
-            Debug.LogMessage($" player.isPlayerControlled - {player.isPlayerControlled}");
-            Debug.LogMessage($" player.isPlayerDead - {player.isPlayerDead}");
+            //Debug.LogMessage("Looping Through Player: " + player);
+            //Debug.LogMessage($" player.isPlayerControlled - {player.isPlayerControlled}");
+            //Debug.LogMessage($" player.isPlayerDead - {player.isPlayerDead}");
             if (player.isPlayerControlled || player.isPlayerDead) result.Add(player);
         }
 

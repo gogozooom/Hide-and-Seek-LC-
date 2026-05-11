@@ -235,7 +235,7 @@ public static class Abilities
         {
             sound = AudioManager.GetSound("MegaBoi", random: range);
 
-            Debug.LogError($"Got a total of {Mathf.RoundToInt(25 * sound.length)}$ from using taunt {sound.name}");
+            Debug.LogMessage($"Got a total of {Mathf.RoundToInt(25 * sound.length)}$ from using taunt {sound.name}");
 
             NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: activatorId, __int: Mathf.RoundToInt(25 * sound.length), __string: "silent"));
         }
@@ -243,7 +243,7 @@ public static class Abilities
         {
             sound = AudioManager.GetSound("BigBoi", random: range);
 
-            Debug.LogError($"Got a total of {Mathf.RoundToInt(12 * sound.length)}$ from using taunt {sound.name}");
+            Debug.LogMessage($"Got a total of {Mathf.RoundToInt(12 * sound.length)}$ from using taunt {sound.name}");
 
             NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: activatorId, __int: Mathf.RoundToInt(12 * sound.length), __string: "silent"));
         }
@@ -251,7 +251,7 @@ public static class Abilities
         {
             sound = AudioManager.GetSound("Taunt", random: range);
 
-            Debug.LogError($"Got a total of {Mathf.RoundToInt(5 * sound.length)}$ from using taunt {sound.name}");
+            Debug.LogMessage($"Got a total of {Mathf.RoundToInt(5 * sound.length)}$ from using taunt {sound.name}");
             NetworkHandler.Instance.EventSendRpc(".moneyChanged", new(__ulong: activatorId, __int: Mathf.RoundToInt(5 * sound.length), __string: "silent"));
         }
 
@@ -1264,7 +1264,7 @@ public static class Abilities
 
         AbilityConfig aCfg = AbilityToCfg(FindAbilityByName(aName, true));
 
-        Debug.Log($"Reading Ability '{aName}'");
+        //Debug.Log($"Reading Ability '{aName}'");
 
         foreach (var item in data.Replace("}", "").Split(";"))
         {
@@ -1273,7 +1273,7 @@ public static class Abilities
             string name = item.Split("=")[0].Trim();
             string value = item.Split("=")[1].Trim();
 
-            Debug.Log($"Reading Value '{name}' = '{value}'");
+            //Debug.Log($"Reading Value '{name}' = '{value}'");
 
             switch (name)
             {
@@ -1309,7 +1309,6 @@ public static class Abilities
     {
         List<AbilityConfig> newACfgs = new();
 
-        Debug.LogWarning("_______ Cfg Input! \r\n" + data.Replace("\t", "").Replace("\r\n", ""));
         foreach (var aCfgS in data.Replace("\t", "").Replace("\r\n", "").Split('}'))
         {
             if (string.IsNullOrEmpty(aCfgS)) continue;
@@ -1352,8 +1351,6 @@ public static class Abilities
                 AbilitiesToCfg();
 
                 string data = $"[v{Plugin.PLUGIN_VERSION}]\r\n" + AbilityCfgsToData();
-
-                Debug.LogWarning("______________ Got Data!: " + data);
 
                 File.WriteAllText(filePath, data);
             }

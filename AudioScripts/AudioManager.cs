@@ -48,7 +48,7 @@ namespace HideAndSeek.AudioScripts
 
                         audioClips.Add(clip);
 
-                        Debug.Log($"Loaded clip name '{clip.name}'");
+                        //Debug.Log($"Loaded clip name '{clip.name}'");
                     }
                     File.Move(fName, Path.Combine(soundDirectory, fileName));
                 }

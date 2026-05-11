@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
-using GameNetcodeStuff;
 using HarmonyLib;
 using HideAndSeek;
 using HideAndSeek.AbilityScripts;
@@ -8,7 +7,6 @@ using HideAndSeek.AudioScripts;
 using HideAndSeek.Patches;
 using UnityEngine;
 using Debug = Debugger.Debug;
-using System.Collections.Generic;
 
 namespace HideAndSeek
 {

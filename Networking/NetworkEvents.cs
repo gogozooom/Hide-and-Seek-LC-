@@ -62,7 +62,6 @@ namespace HideAndSeek.Patches
         {
             if (eventName != ".seekersChosen") return;
 
-            Debug.LogError("___________________ Got Seekers Chosen Broadcast!");
             PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
 
             if (!HideAndSeekGM.instance.seekers.Contains(localPlayer))
@@ -304,8 +303,6 @@ namespace HideAndSeek.Patches
 
             Debug.Log("Got ReceiveAbilityConfig()");
 
-            Debug.Log($"Data = '{mProps._extraMessage}'");
-
             Abilities.LoadAbilityConfig(Abilities.ADataToCfg(mProps._extraMessage));
         }
         public static void RevivePlayerLocal(string eventName, MessageProperties mProps)
@@ -418,7 +415,7 @@ namespace HideAndSeek.Patches
 
             if (HideAndSeekGM.instance.seekers.Contains(localPlayer))
             {
-                //Debug.LogMessage("[SEEKER] Attempted to teleport " + localPlayer.playerUsername + " but they are the seeker!");
+                Debug.LogMessage("[SEEKER] Attempted to teleport " + localPlayer.playerUsername + " but they are the seeker!");
 
                 if (GameObject.FindObjectOfType<AudioReverbPresets>())
                 {
@@ -436,7 +433,7 @@ namespace HideAndSeek.Patches
             }
             else
             {
-                //Debug.LogMessage("[HIDER] Teleporting to entrance... inside" + Config.forceHidersInside.Value);
+                Debug.LogMessage("[HIDER] Teleporting to entrance... inside" + Config.forceHidersInside.Value);
                 localPlayer.DropAllHeldItems(true, false);
                 Vector3 entrancePosition = (Vector3)AccessTools.Method(typeof(RoundManager), "FindMainEntrancePosition", null, null).Invoke(null, [true, !Config.forceHidersInside.Value]);
                 EntranceTeleport entranceScript = (EntranceTeleport)AccessTools.Method(typeof(RoundManager), "FindMainEntranceScript", null, null).Invoke(null, [Config.forceHidersInside.Value]);
@@ -460,7 +457,7 @@ namespace HideAndSeek.Patches
                 }
                 else
                 {
-                    Debug.LogMessage("Failed to find entrance");
+                    Debug.LogError("Failed to find entrance");
                 }
             }
 
@@ -524,7 +521,7 @@ namespace HideAndSeek.Patches
                 }
                 else
                 {
-                    Debug.LogMessage("Failed to find entrance / Player did not pick up items");
+                    Debug.LogError("Failed to find entrance / Player did not pick up items");
                 }
             }
         }

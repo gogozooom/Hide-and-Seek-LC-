@@ -51,13 +51,13 @@ namespace HideAndSeek.AbilityScripts
                         if (sprite.name == "[Null]")
                         {
                             tex.filterMode = FilterMode.Point;
-                            Debug.LogError("Null sprite initalized!");
+                            //Debug.LogError("Null sprite initalized!");
                             nullSprite = sprite;
                         }
                         else
                             abilityUISprites.Add(sprite);
 
-                        Debug.Log($"Loaded sprite name '{sprite.name}'");
+                        //Debug.Log($"Loaded sprite name '{sprite.name}'");
                     }
 
                 }

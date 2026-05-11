@@ -91,7 +91,7 @@ public class NetworkHandler : NetworkBehaviour
         {
             NetworkEvent?.Invoke(eventName, new MessageProperties(__null:true));
         }
-        Debug.LogMessage("[Server] Event! + " + eventName + " Info: " + message);
+        Debug.LogMessage("[NetworkHandler] Sending Event! + " + eventName);
 
         string data = eventName + "|" + JsonUtility.ToJson(message);
 

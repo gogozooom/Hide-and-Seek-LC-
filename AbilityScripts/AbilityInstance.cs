@@ -180,7 +180,6 @@ namespace HideAndSeek.AbilityScripts
         public void ServerMoneyUpdated(int valueChange, bool set = false, bool silent = false)
         {
             if (!Config.abilitiesEnabled.Value) return;
-            Debug.LogWarning($"Got ServerMoneyUpdated({valueChange})!");
 
             money += valueChange;
 

@@ -553,8 +553,6 @@ namespace HideAndSeek.AbilityScripts
 
         private void OnRoundStart()
         {
-            Debug.LogError("[Ability UI] Round Started!");
-
             selectedAbilities = GetUsableAbilities(selectedAbilities);
             currentAbilityIndex = 0;
             selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
@@ -562,8 +560,6 @@ namespace HideAndSeek.AbilityScripts
         }
         private void OnShipLeaving()
         {
-            Debug.LogError("[Ability UI] Round Ended!");
-
             selectedAbilities = allAbilities;
             currentAbilityIndex = 0;
             selectedAbility = GetSeletedAbilityIndex(currentAbilityIndex);
