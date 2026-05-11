@@ -2,7 +2,7 @@ TODO:
 
 Bugs:
 
-	Fix rewards working incorrectly
+	UpdateGameState in the middle of main round start loop
 	Critical injury not working on zombies
 
 Features:

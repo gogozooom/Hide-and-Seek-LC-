@@ -49,7 +49,7 @@ namespace HideAndSeek.Patches
             {
                 if (player.NetworkObjectId == mProps._ulong)
                 {
-                    HideAndSeekGM.instance.seekers.Add(player);
+                    if (!GameNetworkManager.Instance.isHostingGame) HideAndSeekGM.instance.seekers.Add(player);
                     if (GameNetworkManager.Instance.localPlayerController.actualClientId == player.actualClientId)
                     {
                         HUDManager.Instance.DisplayTip("Hide And Seek", $"You are the seeker!", true);

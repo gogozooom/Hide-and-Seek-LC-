@@ -82,7 +82,7 @@ public class HideAndSeekGM : MonoBehaviour
             // Player Died!
             Debug.LogWarning("Player died! New Count: " + alivePlayerCount);
             playersAlive = alivePlayerCount;
-            if (TimeOfDay.Instance.currentDayTime != 0)
+            if (TimeOfDay.Instance.currentDayTime != 0 && !StartOfRound.Instance.shipIsLeaving)
             {
                 UpdateGameState("Player Died");
             }
@@ -92,6 +92,8 @@ public class HideAndSeekGM : MonoBehaviour
 
     private void OnReturnToOrbit()
     {
+        if (!GameNetworkManager.Instance.isHostingGame) return;
+
         Debug.LogError("[HideAndSeekGM] OnRoundEnd()");
         if (seekers.Count > 0)
         {
@@ -472,6 +474,7 @@ public class HideAndSeekGM : MonoBehaviour
 
     public void UpdateGameState(string reason)
     {
+        bool isHost = GameNetworkManager.Instance.isHostingGame;
         Debug.LogError($"UpdateGameState being called because '{reason}'");
 
         var (aliveHiders, aliveSeekers, hidersObjectiveCompleted, aliveZombies) = GetAlivePlayerCount();
@@ -484,7 +487,7 @@ public class HideAndSeekGM : MonoBehaviour
             {
                 EndRound();
 
-                foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Hiders"))
+                if (isHost) foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Hiders"))
                 {
                     if (!player.isPlayerDead && player.isPlayerControlled && !seekers.Contains(player) && !zombies.Contains(player))
                     {
@@ -508,7 +511,7 @@ public class HideAndSeekGM : MonoBehaviour
 
                 EndRound();
 
-                foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Objective Reachers"))
+                if (isHost) foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Objective Reachers"))
                 {
                     if (!player.isPlayerDead && player.isPlayerControlled && !seekers.Contains(player) && !zombies.Contains(player))
                     {
@@ -543,7 +546,7 @@ public class HideAndSeekGM : MonoBehaviour
         }
 
         // Revive and reward players who just died
-        foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Players Who Just Died"))
+        if (isHost) foreach (var player in HideAndSeekGM.GetAllConnectedPlayers("Reward Players Who Just Died"))
         {
             if (!player.isPlayerDead) continue;
             // Player must be dead
