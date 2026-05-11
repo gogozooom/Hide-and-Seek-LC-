@@ -1,11 +1,11 @@
 {
-    "name": "Hide_And_Seek",
-    "version_number": "1.5.0",
-    "website_url": "https://github.com/gogozooom/Hide-and-Seek-LC-",
-    "description": "v81! Adding spice to the classic hide and seek game!",
-    "dependencies": [
-        "BepInEx-BepInExPack-5.4.2305",
-        "xilophor-LethalNetworkAPI-3.3.3",
-        "Rune580-LethalCompany_InputUtils-0.7.13"
-    ]
+  "name": "Hide_And_Seek_Nightly",
+  "version_number": "26.5.10",
+  "website_url": "https://github.com/gogozooom/Hide-and-Seek-LC-",
+  "description": "(Experimental! May be in a unfinished state!) v81! Adding spice to the classic hide and seek game!",
+  "dependencies": [
+    "BepInEx-BepInExPack-5.4.2305",
+    "xilophor-LethalNetworkAPI-3.3.3",
+    "Rune580-LethalCompany_InputUtils-0.7.13"
+  ]
 }

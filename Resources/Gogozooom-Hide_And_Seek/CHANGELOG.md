@@ -3,6 +3,8 @@
     - Support for v81!
 - Changed:
     - A blacklist is now used to disable entities
+- Fixed:
+    - A few bugs
 
 ## v1.4.0 Major update
 - Added:

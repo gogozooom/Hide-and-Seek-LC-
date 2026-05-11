@@ -1,4 +1,4 @@
-## Description
+## Description (Experimental! May be in a unfinished state! Play the full release if you don't know what you're doing! https://thunderstore.io/c/lethal-company/p/Gogozooom/Hide_And_Seek/ )
 - v81! Adding spice to the classic hide and seek game!
 - A Hide And Seek mod dedicated to making your life easier when it comes to rules and finding the right mods.
 - A config allowing a wide range of behaviors allowing the seeker or the hiders to have a slightly better advantage
@@ -9,6 +9,8 @@
     - Support for v81!
 - Changed:
     - A blacklist is now used to disable entities
+- Fixed:
+    - A few bugs
 
 ## Known Mod Conflict Issues
 - Currently, using having the 'ModelReplacementApi' mod will break the Invisibility ability, as the models are handled differently. This makes it hard to disable the custom models without a hard and unnecessary dependency on the mod

@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Gogozooom-Hide_And_Seek\HideAndSeek.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.BaseLib" Version="5.4.21" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
