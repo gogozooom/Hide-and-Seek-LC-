@@ -4,8 +4,10 @@ using HideAndSeek.Patches;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Debug = Debugger.Debug;
 
 namespace HideAndSeek.AbilityScripts;
@@ -1259,9 +1261,12 @@ public static class Abilities
     }
     public static AbilityConfig ADataToCfg(string d)
     {
-        string[] s = d.Split("{");
-        string aName = s[0].Trim();
-        string data = s[1];
+        string[] dSplit = d.Split("{");
+
+        if (dSplit.Length != 2) return null;
+
+        string aName = dSplit[0].Trim();
+        string data = dSplit[1];
 
         AbilityConfig aCfg = AbilityToCfg(FindAbilityByName(aName, true));
 
@@ -1269,10 +1274,12 @@ public static class Abilities
 
         foreach (var item in data.Replace("}", "").Split(";"))
         {
-            if (string.IsNullOrEmpty(item)) continue;
+            var iSplit = item.Split('=');
 
-            string name = item.Split("=")[0].Trim();
-            string value = item.Split("=")[1].Trim();
+            if (iSplit.Length != 2) continue;
+
+            string name = iSplit[0].Trim();
+            string value = iSplit[1].Trim();
 
             //Debug.Log($"Reading Value '{name}' = '{value}'");
 
@@ -1316,8 +1323,10 @@ public static class Abilities
 
             var sCfData = ADataToCfg(aCfgS);
 
-            newACfgs.Add(sCfData);
+            if (sCfData != null) newACfgs.Add(sCfData);
         }
+
+        Debug.LogWarning("Done Reading All Configs");
 
         return newACfgs;
     }
