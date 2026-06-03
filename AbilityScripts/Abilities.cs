@@ -828,7 +828,7 @@ public static class Abilities
             return;
         }
 
-        GameNetworkManager.Instance.StartCoroutine(StealthServerEventCoroutine(ability, activatorId, true));
+        HideAndSeekGM.instance.StartCoroutine(StealthServerEventCoroutine(ability, activatorId, true));
     }
     static void StealthServerEvent(AbilityBase ability, ulong activatorId)
     {
@@ -842,7 +842,7 @@ public static class Abilities
             return;
         }
 
-        GameNetworkManager.Instance.StartCoroutine(StealthServerEventCoroutine(ability, activatorId));
+        HideAndSeekGM.instance.StartCoroutine(StealthServerEventCoroutine(ability, activatorId));
     }
     static IEnumerator StealthServerEventCoroutine(AbilityBase ability, ulong activatorId, bool forever = false)
     {
@@ -878,17 +878,18 @@ public static class Abilities
         PlayerControllerB activatedPlayer = HideAndSeekGM.instance.GetPlayerWithClientId(activatorId);
         AbilityInstance activatedInstance = activatedPlayer.GetComponent<AbilityInstance>();
 
-        if (activatedInstance == null)
-        {
-            activatedInstance = activatedPlayer.gameObject.AddComponent<AbilityInstance>();
-        }
+        activatedInstance ??= activatedPlayer.gameObject.AddComponent<AbilityInstance>();
 
         bool isLocalPlayer = activatedPlayer == GameNetworkManager.Instance.localPlayerController;
 
         if (extraMessage == "Cancel")
         {
             if (isLocalPlayer)
-                Abilities.FindAbilityByName(ability.abilityName).usedThisRound = false;
+            {
+                activatedInstance.DisplayTip("You already have another stealth ability active!", true);
+                ability.usedThisRound = false;
+                ability.lastUsed = 0;
+            }
 
             return;
         } else if (extraMessage == "Warn")
