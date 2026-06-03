@@ -1048,43 +1048,24 @@ namespace HideAndSeek.AbilityScripts
 
             float timeSinceUsed = Time.time - selectedAbility.lastUsed;
 
+            if (selectedAbility.oneTimeUse && selectedAbility.usedThisRound)
+            {
+                timeSinceUsed = 0; 
+            }
+            
             if (timeSinceUsed <= selectedAbility.abilityDelay) // On Delay
             {
                 float animationTime = timeSinceUsed / selectedAbility.abilityDelay; // starts at 0, goes to 1
 
                 fadeCooldownUI.localPosition = new(0, -160 * animationTime, 0);
 
-                if (fadeSpriteUI.gameObject.active)
-                {
-                    fadeSpriteUI.gameObject.SetActive(false);
-                }
-                if (!fadeCooldownUI.gameObject.active)
-                {
-                    fadeCooldownUI.gameObject.SetActive(true);
-                }
-            } else if (selectedAbility.oneTimeUse && selectedAbility.usedThisRound)
-            {
-                fadeCooldownUI.localPosition = new(0, 0, 0);
-
-                if (fadeSpriteUI.gameObject.active)
-                {
-                    fadeSpriteUI.gameObject.SetActive(false);
-                }
-                if (!fadeCooldownUI.gameObject.active)
-                {
-                    fadeCooldownUI.gameObject.SetActive(true);
-                }
+                fadeSpriteUI.gameObject.SetActive(false);
+                fadeCooldownUI.gameObject.SetActive(true);
             }
             else // Can use
             {
-                if (!fadeSpriteUI.gameObject.active)
-                {
-                    fadeSpriteUI.gameObject.SetActive(true);
-                }
-                if (fadeCooldownUI.gameObject.active)
-                {
-                    fadeCooldownUI.gameObject.SetActive(false);
-                }
+                fadeSpriteUI.gameObject.SetActive(true);
+                fadeCooldownUI.gameObject.SetActive(false);
             }
         }
         public void UpdateAbilityCount(Button selectedButton = null)
