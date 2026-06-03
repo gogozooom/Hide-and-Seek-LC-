@@ -577,6 +577,8 @@ public class HideAndSeekGM : MonoBehaviour
     }
     public GameState GetGameState()
     {
+        if (GetAllConnectedPlayers("Get Game State").Count == 1) return GameState.HidersRemain; // Prevent being kicked out while testing solo
+
         var (aliveHiders, aliveSeekers, hidersObjectiveCompleted, aliveZombies) = GetAlivePlayerCount();
 
         if (aliveSeekers <= 0) // All seekers dead?
