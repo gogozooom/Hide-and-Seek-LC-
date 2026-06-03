@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UIElements;
 using Debug = Debugger.Debug;
 
 namespace HideAndSeek.AudioScripts
@@ -25,21 +26,43 @@ namespace HideAndSeek.AudioScripts
                 Directory.CreateDirectory(soundDirectory);
             }
 
-            var files = Directory.GetFiles(dllFolderPath, "*.wav", SearchOption.AllDirectories);
+            var files = Directory.GetFiles(dllFolderPath, "*", SearchOption.AllDirectories);
 
             Debug.LogWarning($"Now loading all sounds! Path = '{dllFolderPath}', Files found = '{files.Length}'");
             foreach (var fName in files)
             {
+                string fileExtension = fName.Split('.')[^1];
+
+                AudioType t = AudioType.UNKNOWN;
+
+                if (fileExtension == "mp3")
+                {
+                    t = AudioType.MPEG;
+                }
+                else if (fileExtension == "ogg")
+                {
+                    t = AudioType.OGGVORBIS;
+                }
+                else if (fileExtension == "wav")
+                {
+                    t = AudioType.WAV;
+                }
+                else
+                {
+                    continue;
+                }
+
                 string url = string.Format("file://{0}", fName);
-                
-                UnityWebRequest web = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.WAV);
+                UnityWebRequest web = UnityWebRequestMultimedia.GetAudioClip(url, t);
+
+
 
                 yield return web.SendWebRequest();
-                if (!web.isNetworkError && !web.isHttpError)
+                if (web.result == UnityWebRequest.Result.Success)
                 {
                     var splitString = fName.Split("\\");
                     var fileName = splitString[splitString.Length - 1];
-                    var soundName = fileName.Replace(".wav", "");
+                    var soundName = fileName.Split(".")[0];
 
                     var clip = DownloadHandlerAudioClip.GetContent(web);
                     if (clip != null)

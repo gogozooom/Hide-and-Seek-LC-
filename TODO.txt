@@ -2,15 +2,10 @@ TODO:
 
 Bugs:
 
-	Infinite stealth being buyable again
-	Buying normal stealth then infinite stealth cancels eachother out
 	Ship gets stuck when client pulls bugged lever once and a second time to be seeker with the host immediately dying afterwards
 	Critical injury not working on zombies
 
 Features:
-
-	"I am steve" Taunt
-	"GET OUT" Taunt
 
 	Seeker ignores weight and more stamina
 
@@ -21,7 +16,3 @@ Features:
 	Mark the exits when they are unlocked
 
 	Redo Taunt audio loading system to make custom sounds easily sharable
-
-	Nahh bruh : Decoy ability
-
-Removed:
