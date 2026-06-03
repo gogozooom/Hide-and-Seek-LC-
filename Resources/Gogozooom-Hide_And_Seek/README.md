@@ -7,10 +7,14 @@
 ## v1.5.0 Major update
 - Added:
     - Support for v81!
+    - Support for ogg and mp3 audio
+    - More Taunts
 - Changed:
     - A blacklist is now used to disable entities
+    - Wav taunt files to be mp3s to save space
 - Fixed:
-    - A few bugs
+    - One time use abilities appearing to have a cooldown
+    - A few other bugs
 
 ## Known Mod Conflict Issues
 - Currently, using having the 'ModelReplacementApi' mod will break the Invisibility ability, as the models are handled differently. This makes it hard to disable the custom models without a hard and unnecessary dependency on the mod

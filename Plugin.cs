@@ -14,8 +14,8 @@ namespace HideAndSeek
     public class Plugin : BaseUnityPlugin
     {
         public const string PLUGIN_GUID = "gogozooom.HideAndSeek";
-        public const string PLUGIN_NAME = "Hide And Seek Nightly";
-        public const string PLUGIN_VERSION = "1.5.0.0";
+        public const string PLUGIN_NAME = "Hide And Seek";
+        public const string PLUGIN_VERSION = "1.5.0";
 
         // Instances
         public static ManualLogSource _Logger;
